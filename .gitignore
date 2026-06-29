@@ -13,3 +13,7 @@ Thumbs.db
 
 # LibreOffice lock files (used by xlsx recalculation tooling)
 .~lock.*#
+
+# Raw TCPD Lok Dhaba source downloads (user's own large files, not redistributed)
+TCPD_*_All_States_*.csv
+TCPD_*_All_States_*.csv.gz

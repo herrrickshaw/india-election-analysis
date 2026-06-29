@@ -21,6 +21,17 @@ parties only (no hypothetical new parties). Covers:
 - Monte Carlo simulation: 20,000 randomized, historically-bounded seat permutations,
   answering "what share of plausible outcomes produce a hung parliament?"
 
+### 3. [`vote-share-modeling/`](./vote-share-modeling)
+Predictive modeling of constituency-level vote share on real TCPD Lok Dhaba data
+(1999-2019 Lok Sabha, 1961-2023 State Assembly). Three approaches, evaluated with a
+genuine chronological train/validation/test split:
+- Discrete win/lose classifier (failed — near-random accuracy across a 2014 regime change)
+- Hierarchical Bayesian model (MrP-inspired partial pooling across states)
+- Dirichlet-Swing Matrix Model (Mitra 2026), including real Dirichlet-MLE degeneracy
+  bugs found and fixed during implementation
+- Headline finding: none of the three beats a naive "assume no change" baseline on
+  real held-out future elections — a genuine, reported negative result
+
 ## Important framing
 
 **Neither analysis is a forecast.** The coalition model in particular is a structural/
