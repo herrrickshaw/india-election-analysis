@@ -21,6 +21,16 @@ parties only (no hypothetical new parties). Covers:
 - Monte Carlo simulation: 20,000 randomized, historically-bounded seat permutations,
   answering "what share of plausible outcomes produce a hung parliament?"
 
+Includes a [`seat-bias-analysis/`](./coalition-game-theory/seat-bias-analysis) subfolder
+covering:
+- **Seat-Total Bias Analysis (534–1,000 seats)**: sweeps the winner's bonus (Gallagher
+  disproportionality) and P(incumbent majority) at every seat-total from 534 to 1,000.
+  Includes a prominent coin-flip disclaimer and a post-hoc assumption audit identifying
+  two material biases (seat-share-as-vote-share proxy, concentration parameter too tight).
+- **Entrenchment Symmetry Test**: five counterfactual scenarios (NDA real lead, INDIA
+  mirror, toss-up, small leads each direction) confirm the entrenchment effect is
+  symmetric — it depends on distance from 50%, not on which bloc happens to lead.
+
 ### 3. [`vote-share-modeling/`](./vote-share-modeling)
 Predictive modeling of constituency-level vote share on real TCPD Lok Dhaba data
 (1999-2019 Lok Sabha, 1961-2023 State Assembly). Three approaches, evaluated with a
