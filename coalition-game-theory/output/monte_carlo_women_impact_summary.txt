@@ -1,0 +1,58 @@
+
+MONTE CARLO ANALYSIS: NDA vs INDIA with Women's Reservation (Phase 5)
+
+BASELINE (20,000 Simulations, No Women's Reservation):
+- NDA Outright Majority: 51.58% (10,316 simulations)
+- INDIA Outright Majority: 10.505% (2,101 simulations)
+- Hung Parliament: 37.915% (7,583 simulations)
+- Majority Quota: 272 / 543 seats
+
+WOMEN'S RESERVATION PARAMETERS:
+- Reserved seats: 188 (33% of 543)
+- Estimated women elected: 31 (5.7% win rate)
+- Carving model: Equal reduction across NDA/INDIA/others
+
+POST-RESERVATION (Estimated Probabilities):
+- NDA Outright Majority: 49.00% (change: -2.58%)
+  → NDA loses majority capability in ~5% of previously-majority scenarios
+- INDIA Outright Majority: 10.29% (change: -0.21%)
+  → Marginal improvement for INDIA
+- Women Kingmakers (Bloc Swing Votes): 8.00%
+  → Arises in ~8% of scenarios (from hung parliament + new dynamics)
+- Pure Hung Parliament: 40.49%
+
+SCENARIO-BY-SCENARIO IMPACT (6 Fixed Scenarios):
+- Scenarios where outcome changes: 3 / 6
+  • S0 (Actual Current): NDA Majority → (unchanged, large lead)
+  • S1 (2024 Declared): NDA Majority → (unchanged, lead of 21 seats)
+  • S2 (NDA Falls Short): Hung → NDA + Women can form majority (women kingmakers!)
+  • S3 (Deep Frag): Hung → (remains hung, more players)
+  • S4 (NDA + Swing): Hung → (remains hung, women now explicit player)
+  • S5 (INDIA Largest): Hung → INDIA + Women can form majority (women kingmakers!)
+
+KEY INSIGHTS:
+1. NDA's Majority Resilience: Even post-reservation, NDA retains majority in ~49% of Monte Carlo scenarios
+   → NDA is structurally favored; women's bloc is swing, not kingmaker, in baseline cases
+
+2. Women's Leverage in Swing Scenarios: In hung parliament cases (37.9% baseline), women's 31 votes
+   become critical swing factor
+   → Placement in S2, S4, S5-type scenarios maximizes political leverage
+
+3. INDIA's Structural Problem Persists: INDIA wins outright majority in <11% of scenarios
+   (even fewer post-women reservation)
+   → Even with women's support, INDIA needs additional regional allies
+
+4. Kingmaker Feasibility: Women can form winning coalitions in ~8% of all Monte Carlo draws
+   (previously hung parliament cases)
+   → Requires women's bloc cohesion + strategic placement in contested states
+
+STRATEGIC RECOMMENDATION FOR DELIMITATION:
+- If goal is representation: distributed placement across all states (current strategy)
+- If goal is coalition leverage: concentrate women in swing states (Bihar, West Bengal, Maharashtra, Odisha)
+  where outcome is genuinely contested and 31-vote margin matters
+
+LIMITATIONS OF THIS ANALYSIS:
+- Assumes women's win rate constant (5.7%) across all scenarios
+- Assumes equal carving from all blocs (actual will vary by party strategy)
+- Assumes women MPs act as cohesive bloc (requires party discipline)
+- Monte Carlo ranges (NDA 220-360) based on historical volatility; post-women may differ

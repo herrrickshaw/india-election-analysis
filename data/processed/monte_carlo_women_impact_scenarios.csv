@@ -1,0 +1,7 @@
+Scenario,Label,NDA_Pre,INDIA_Pre,Outcome_Pre,NDA_Post,INDIA_Post,Women,Outcome_Post,NDA_Needs_Women,INDIA_Needs_Women,Outcome_Change
+S0_Actual_Current,Actual Current (June 2026),318,206,NDA Majority,308,196,31,NDA Majority,False,False,False
+S1_2024_Declared,2024 Declared Result,293,234,NDA Majority,283,224,31,NDA Majority,False,False,False
+S2_NDA_Falls_Short,NDA Falls Short (Hung),255,260,Hung,245,250,31,NDA + Women (Kingmakers),True,True,True
+S3_Deep_Fragmentation,Deep Fragmentation,240,230,Hung,230,220,31,Hung,False,False,False
+S4_NDA_Swing,NDA Needs Swing,260,245,Hung,250,235,31,NDA + Women (Kingmakers),True,False,True
+S5_INDIA_Largest,INDIA Largest (Hung),235,260,Hung,225,250,31,INDIA + Women (Kingmakers),False,True,True
