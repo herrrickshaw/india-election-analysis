@@ -1,0 +1,32 @@
+
+PLACEMENT OPTIMIZATION SUMMARY
+
+Representation-First Strategy (Optimal for maximizing women elected):
+- Total women anticipated: 14 across all states
+- Average win probability per reserved seat: 40.8%
+- Total reserved seats: 2,491
+
+Geographic Coverage:
+- States covered: 34
+- Constituency diversity: GEN 1,022, SC 795, ST 664
+
+Top 5 states for women representation:
+         State  Reserved_Seats_Target  Avg_Predicted_Win_Prob
+ Uttar_Pradesh                    276                0.387588
+Madhya_Pradesh                    168                0.432742
+         Bihar                    173                0.385318
+Andhra_Pradesh                    164                0.405614
+   West_Bengal                    155                0.420545
+
+Swing States (high electoral volatility for women):
+            State  Reserved_Seats_Target  Avg_Gender_Gap
+        Meghalaya                     32        0.001924
+          Mizoram                     31        0.001918
+         Nagaland                     23        0.001916
+Arunachal_Pradesh                     31        0.001911
+           Mysore                     73        0.001907
+
+NEXT PHASE: Coalition Sensitivity Analysis
+- For each placement scheme: re-run Banzhaf index across state assemblies
+- Identify which schemes flip hung parliaments to stable coalitions
+- Rank by: representation + power + stability
