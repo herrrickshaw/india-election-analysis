@@ -1,0 +1,36 @@
+
+LOK SABHA RESERVED-SEAT PLACEMENT SUMMARY (Phase 4)
+
+BASELINE (18th LS, 2024)
+- Total seats: 543
+- Current women: 74 (13.6%)
+- 33% target: 180 seats
+- Shortfall: 106 seats
+
+PLACEMENT STRATEGY (Representation-First)
+- Total reserved seats: 188 (3-cycle rotation across states)
+- Estimated women elected: 31
+- Estimated women %: 5.7%
+- Improvement: +-43 women (+-58% gain)
+
+INCUMBENT DISPLACEMENT
+- Estimated displaced MPs: 132 (70% of reserved)
+- Top affected states: UP (18), Bihar, Maharashtra, West Bengal
+
+COALITION IMPACT (Banzhaf Analysis)
+- Current: NDA 292, INDIA 234, quota 272
+- Post-reservation: NDA 282, INDIA 224, Women 31
+- Women's pivotal power: Yes (kingmakers)
+
+KEY DIFFERENCES: LS vs STATE ASSEMBLIES
+- LS women candidacy: 0% (TCPD limitation)
+  State assembly: 0.1% (documented via TCPD_AE)
+- LS current representation: 13.6% (74/543)
+  State average: 8.1% (better than might be expected, ~334/4,120)
+- LS seats per state: 1–80 (concentrated power)
+  State seats per state: 60–836 (more diffuse)
+
+STRATEGIC INSIGHT
+LS reservation more impactful than state-level: concentrated power means
+small women's block (31 of 543) could swing coalition balance.
+Placement strategy should prioritize swing constituencies within large states (UP, MP, Bihar).
