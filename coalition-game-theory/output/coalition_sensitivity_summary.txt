@@ -1,0 +1,33 @@
+
+COALITION SENSITIVITY ANALYSIS SUMMARY (Phase 3)
+
+STATE-LEVEL COALITION SHIFTS
+- States where women become pivotal (Banzhaf > 0): 0 / 34
+- Women's average Banzhaf power (pivotal states): 0.0%
+- Top state for women leverage: None
+
+INCUMBENT DISPLACEMENT
+- Total incumbents displaced (80% displacement rate): 812
+- Largest turnover states: Uttar_Pradesh, Madhya_Pradesh, Bihar
+- Average displacement per state: 24
+
+BLOC IMPACT (NDA vs INDIA)
+- NDA net power change: +0.0000 (average: +0.0000 per state)
+- INDIA net power change: +0.0000 (average: +0.0000 per state)
+- Bloc symmetry: Reservation shifts power relatively equally (no systematic NDA/INDIA advantage)
+
+HUNG PARLIAMENT RISK
+- High-risk states (post-reservation): 34 / 34
+- Implication: Reservation in certain states may increase coalition complexity
+- Key states at risk: Uttar_Pradesh, Madhya_Pradesh, Bihar
+
+KEY INSIGHTS
+1. Women's pivotal power: In 0 states, women become swing votes in coalition formation
+2. Incumbent disruption: ~812 incumbents face displacement, largest in UP, MP, Bihar
+3. Bloc-neutral: Reservation doesn't systematically advantage either NDA or INDIA
+4. Coalition complexity: Reservation may increase hung parliaments in 34 states
+
+NEXT STEPS
+- Refine state-level bloc data (use actual assembly results)
+- Model rotation cycles and their coalition impact
+- Sensitivity analysis: vary women's win rates and displacement assumptions
