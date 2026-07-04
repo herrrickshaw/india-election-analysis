@@ -1,0 +1,13 @@
+scenario,seat_col,total_seats,quota,p_nda,p_india,p_hung,avg_nda_seats,avg_india_seats,p10_nda,p90_nda,p10_india,p90_india
+2024 bloc shares — current frozen seats (543),LS_Seats_2024,543,272,0.998,0.0,0.002,296.7,231.4,287,307,221,241
+2024 bloc shares — pop-proportional 543 seats,Seats_pop_543,543,272,1.0,0.0,0.0,300.8,228.0,290,311,217,238
+2024 bloc shares — pop-proportional 650 seats,Seats_pop_650,650,326,1.0,0.0,0.0,362.4,271.4,351,374,259,283
+2024 bloc shares — pop-proportional 750 seats,Seats_pop_750,750,376,1.0,0.0,0.0,418.8,312.8,406,431,301,326
+2024 bloc shares — pop-proportional 850 seats,Seats_pop_850,850,426,1.0,0.0,0.0,474.4,355.6,461,487,342,369
+2024 bloc shares — pop-proportional 1000 seats,Seats_pop_1000,1000,501,1.0,0.0,0.0,559.7,415.8,545,574,402,431
+2029 trend projection — current frozen seats (543),LS_Seats_2024,543,272,1.0,0.0,0.0,304.4,227.4,294,315,217,238
+2029 trend projection — pop-proportional 543,Seats_pop_543,543,272,1.0,0.0,0.0,308.6,223.8,298,318,214,234
+2029 trend projection — pop-proportional 650,Seats_pop_650,650,326,1.0,0.0,0.0,371.4,266.7,360,383,255,278
+2029 trend projection — pop-proportional 750,Seats_pop_750,750,376,1.0,0.0,0.0,428.8,307.7,417,440,296,319
+2029 trend projection — pop-proportional 850,Seats_pop_850,850,426,1.0,0.0,0.0,486.2,349.2,473,499,336,362
+2029 trend projection — pop-proportional 1000,Seats_pop_1000,1000,501,1.0,0.0,0.0,573.6,408.7,559,587,395,423

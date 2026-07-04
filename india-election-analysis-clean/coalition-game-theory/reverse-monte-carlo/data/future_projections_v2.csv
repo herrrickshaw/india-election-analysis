@@ -1,0 +1,37 @@
+scenario,year,bloc1_vote,bloc2_vote,bloc1_label,bloc2_label,noise_sd_pp,p_bloc1_majority,p_bloc2_majority,p_hung
+A_Actual,2029,36.2,17.3,NDA (BJP traj),INDIA (CON traj),0.0,1.0,0.0,0.0
+A_Actual,2029,36.2,17.3,NDA (BJP traj),INDIA (CON traj),3.0,1.0,0.0,0.0
+A_Actual,2029,36.2,17.3,NDA (BJP traj),INDIA (CON traj),6.0,0.985,0.013,0.002
+A_Actual,2034,37.9,15.4,NDA (BJP traj),INDIA (CON traj),0.0,1.0,0.0,0.0
+A_Actual,2034,37.9,15.4,NDA (BJP traj),INDIA (CON traj),3.0,1.0,0.0,0.0
+A_Actual,2034,37.9,15.4,NDA (BJP traj),INDIA (CON traj),6.0,0.996,0.004,0.0
+A_Actual,2039,39.6,13.6,NDA (BJP traj),INDIA (CON traj),0.0,1.0,0.0,0.0
+A_Actual,2039,39.6,13.6,NDA (BJP traj),INDIA (CON traj),3.0,1.0,0.0,0.0
+A_Actual,2039,39.6,13.6,NDA (BJP traj),INDIA (CON traj),6.0,0.999,0.001,0.0
+B_Reversed,2029,17.3,36.2,CON (as BJP traj),BJP (as CON traj),0.0,0.0,1.0,0.0
+B_Reversed,2029,17.3,36.2,CON (as BJP traj),BJP (as CON traj),3.0,0.0,1.0,0.0
+B_Reversed,2029,17.3,36.2,CON (as BJP traj),BJP (as CON traj),6.0,0.008,0.989,0.002
+B_Reversed,2034,15.4,37.9,CON (as BJP traj),BJP (as CON traj),0.0,0.0,1.0,0.0
+B_Reversed,2034,15.4,37.9,CON (as BJP traj),BJP (as CON traj),3.0,0.0,1.0,0.0
+B_Reversed,2034,15.4,37.9,CON (as BJP traj),BJP (as CON traj),6.0,0.004,0.995,0.0
+B_Reversed,2039,13.6,39.6,CON (as BJP traj),BJP (as CON traj),0.0,0.0,1.0,0.0
+B_Reversed,2039,13.6,39.6,CON (as BJP traj),BJP (as CON traj),3.0,0.0,1.0,0.0
+B_Reversed,2039,13.6,39.6,CON (as BJP traj),BJP (as CON traj),6.0,0.001,0.999,0.0
+C_Convergence,2029,35.0,33.0,NDA (converged),INDIA (converged),0.0,0.957,0.002,0.041
+C_Convergence,2029,35.0,33.0,NDA (converged),INDIA (converged),3.0,0.617,0.293,0.09
+C_Convergence,2029,35.0,33.0,NDA (converged),INDIA (converged),6.0,0.579,0.376,0.045
+C_Convergence,2034,35.0,33.0,NDA (converged),INDIA (converged),0.0,0.957,0.002,0.041
+C_Convergence,2034,35.0,33.0,NDA (converged),INDIA (converged),3.0,0.635,0.273,0.091
+C_Convergence,2034,35.0,33.0,NDA (converged),INDIA (converged),6.0,0.566,0.387,0.047
+C_Convergence,2039,35.0,33.0,NDA (converged),INDIA (converged),0.0,0.955,0.001,0.044
+C_Convergence,2039,35.0,33.0,NDA (converged),INDIA (converged),3.0,0.616,0.293,0.091
+C_Convergence,2039,35.0,33.0,NDA (converged),INDIA (converged),6.0,0.558,0.393,0.05
+D_Deep_Reversal,2029,22.5,18.1,CON dominant,BJP marginal,0.0,1.0,0.0,0.0
+D_Deep_Reversal,2029,22.5,18.1,CON dominant,BJP marginal,3.0,0.831,0.131,0.038
+D_Deep_Reversal,2029,22.5,18.1,CON dominant,BJP marginal,6.0,0.685,0.291,0.024
+D_Deep_Reversal,2034,20.1,19.0,CON dominant,BJP marginal,0.0,0.944,0.003,0.053
+D_Deep_Reversal,2034,20.1,19.0,CON dominant,BJP marginal,3.0,0.59,0.355,0.055
+D_Deep_Reversal,2034,20.1,19.0,CON dominant,BJP marginal,6.0,0.524,0.446,0.03
+D_Deep_Reversal,2039,17.6,19.8,CON dominant,BJP marginal,0.0,0.0,1.0,0.0
+D_Deep_Reversal,2039,17.6,19.8,CON dominant,BJP marginal,3.0,0.284,0.67,0.046
+D_Deep_Reversal,2039,17.6,19.8,CON dominant,BJP marginal,6.0,0.383,0.589,0.028
