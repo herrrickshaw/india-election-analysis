@@ -65,3 +65,13 @@ running the scripts in sequence) — see each subfolder's README for the exact r
 Built using publicly available data as of June 2026 (ECI statistical reports, Census of
 India 2011, Wikipedia-compiled Lok Sabha membership records, PRS Legislative Research).
 See in-workbook source notes for full citations.
+
+# Boundary conditions
+The Lok Sabha chamber in the new Parliament building (Sansad Bhavan) in New Delhi has a standard seating capacity of 888 seats. Additionally, the hall's design can be expanded to accommodate up to 1,272 seats to host joint sessions of both houses of Parliament. 
+
+# Precedent
+The Indian Constitution mandates a minimum of 33% reservation for women in all Panchayati Raj Institutions (PRIs) through Article 243D. However, over 20 Indian states (including Karnataka, Bihar, and Madhya Pradesh) have expanded this quota to 50%, ensuring women hold at least half of all seats and chairperson roles, however in the parliament the women's reservation bill only proposes 33% - https://sansad.in/getFile/loksabhaquestions/annex/185/AU2550_aiD6KX.pdf?source=pqals
+
+# Optimum Solution proposed
+Increase the total women's reservations to 50%, to ensure gender equality by design at least, number of MP seats can be decided based on Census results. India is currently in the middle of its 16th Census (Census 2027). Because field operations are still underway, there are no published or final results yet. Provisional results are anticipated in late 2027, with final reports expected in late 2028. MP seats are to establish a representative democracy and the purpose of the bill is to ensure more MPs per citizen, which ensures equal representation by aligning the voter population with the number of representatives ("one person, one vote, one value"), hence will incomplete census data how can the bill be evaluated?
+
