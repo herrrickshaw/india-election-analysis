@@ -1,5 +1,7 @@
 # India Election Analysis
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/herrrickshaw/india-election-analysis/blob/master/notebooks/colab_test.ipynb)
+
 Two related analyses of India's electoral system, built with Python (pandas/openpyxl) and delivered as Excel workbooks.
 
 ## Contents
