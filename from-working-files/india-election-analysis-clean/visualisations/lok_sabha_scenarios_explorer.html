@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lok Sabha — Seats vs. Probability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #080f1a;
+    --card:     #0d1c2e;
+    --border:   #1a3250;
+    --saffron:  #FF9933;
+    --green:    #138808;
+    --navy:     #000080;
+    --hung:     #7c3aed;
+    --stone:    #64748b;
+    --text:     #dde4ee;
+    --dim:      #475569;
+    --mono:     'JetBrains Mono', monospace;
+    --sans:     'Space Grotesk', system-ui, sans-serif;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 13px; line-height: 1.5; min-height: 100vh; }
+
+  /* ── Layout ── */
+  .shell { max-width: 960px; margin: 0 auto; padding: 0 20px 40px; }
+
+  /* ── Header ── */
+  .header { border-bottom: 1px solid var(--border); padding: 24px 20px 18px; }
+  .header-eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--saffron); margin-bottom: 8px; }
+  .header h1 { font-size: clamp(20px,3.5vw,30px); font-weight: 700; letter-spacing: -0.5px; color: #f8fafc; line-height: 1.1; }
+  .header p  { color: var(--stone); font-size: 12px; margin-top: 8px; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 20px; }
+  .tab { padding: 10px 18px; background: none; border: none; border-bottom: 2px solid transparent;
+         color: var(--dim); font-family: var(--sans); font-size: 12px; font-weight: 600;
+         cursor: pointer; transition: color .15s, border-color .15s; }
+  .tab.active { color: var(--saffron); border-bottom-color: var(--saffron); }
+
+  /* ── Panel ── */
+  .panel { display: none; padding-top: 20px; }
+  .panel.active { display: block; }
+
+  /* ── Cards grid ── */
+  .scenario-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+  @media (max-width: 700px) { .scenario-grid { grid-template-columns: repeat(3, 1fr); } }
+  .scard { background: var(--card); border: 1.5px solid var(--border); border-radius: 8px;
+           padding: 10px 12px; cursor: pointer; text-align: left; transition: all .15s; }
+  .scard.active { border-color: var(--saffron); background: rgba(255,153,51,.08); }
+  .scard .icon { font-size: 16px; margin-bottom: 4px; }
+  .scard .label { font-family: var(--mono); font-size: 10px; font-weight: 700; line-height: 1.2; color: var(--stone); }
+  .scard.active .label { color: var(--saffron); }
+  .scard .sub { font-family: var(--mono); font-size: 8px; color: var(--dim); margin-top: 2px; }
+
+  /* ── Two-col ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ── Module card ── */
+  .module { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .module-label { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--stone); margin-bottom: 10px; }
+
+  /* ── Big number ── */
+  .big-number { font-family: var(--mono); font-size: clamp(36px,6vw,52px); font-weight: 700; line-height: 1; margin-bottom: 8px; }
+
+  /* ── Progress bar ── */
+  .pbar-track { background: #0a1628; border-radius: 4px; height: 8px; margin-bottom: 8px; overflow: hidden; }
+  .pbar-fill  { height: 100%; border-radius: 4px; transition: width .5s ease, background .3s; }
+
+  /* ── Metric mini cards ── */
+  .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .mini { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .mini .ml { font-family: var(--mono); font-size: 8px; color: var(--dim); margin-bottom: 4px; }
+  .mini .mv { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+  .mini .mn { font-family: var(--mono); font-size: 8px; color: #334155; margin-top: 2px; }
+
+  /* ── Insight box ── */
+  .insight { background: #0c1f0c; border: 1px solid #166534; border-radius: 8px; padding: 10px 12px; }
+  .insight-label { font-family: var(--mono); font-size: 9px; font-weight: 700; color: #4ade80; margin-bottom: 4px; }
+  .insight p { font-family: var(--mono); font-size: 10px; color: #86efac; line-height: 1.5; }
+
+  /* ── Slider ── */
+  .slider-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-family: var(--mono); font-size: 10px; }
+  input[type=range] { width: 100%; accent-color: var(--saffron); cursor: pointer; }
+  .seat-buttons { display: flex; gap: 6px; margin-top: 8px; }
+  .sbtn { flex: 1; background: transparent; border: 1px solid var(--border); border-radius: 4px;
+          padding: 4px 0; color: var(--dim); font-family: var(--mono); font-size: 9px;
+          cursor: pointer; transition: all .15s; text-align: center; }
+  .sbtn.active { border-color: var(--saffron); color: var(--saffron); background: rgba(255,153,51,.08); }
+
+  /* ── Tossup alert ── */
+  .tossup-alert { background: #1e1047; border: 1px solid #4c1d95; border-radius: 6px; padding: 8px 10px; margin-top: 8px; font-family: var(--mono); font-size: 9px; color: #c4b5fd; line-height: 1.5; }
+
+  /* ── SVG canvas ── */
+  svg { overflow: visible; }
+
+  /* ── Disclaimer ── */
+  .disclaimer { background: #160606; border: 1px solid #7f1d1d; border-radius: 8px; padding: 14px 16px; margin-top: 20px; }
+  .disclaimer .dtitle { font-family: var(--mono); font-size: 10px; font-weight: 700; color: #ef4444; margin-bottom: 8px; }
+  .disclaimer p { font-family: var(--mono); font-size: 10px; color: #fca5a5; line-height: 1.8; }
+  .disclaimer b { color: #f87171; }
+
+  /* ── Heatmap ── */
+  .heatmap-wrap { overflow-x: auto; }
+  .hm-row { display: flex; align-items: center; height: 36px; }
+  .hm-cell { flex-shrink: 0; height: 36px; display: flex; align-items: center; justify-content: center;
+             cursor: crosshair; transition: filter .1s; font-family: var(--mono); font-size: 7px;
+             font-weight: 700; color: rgba(255,255,255,.7); }
+  .hm-cell:hover { filter: brightness(1.35); }
+  .hm-label { flex-shrink: 0; text-align: right; padding-right: 10px; font-family: var(--mono); font-size: 9px; }
+  .hm-header { display: flex; height: 24px; align-items: flex-end; padding-bottom: 3px; }
+  .hm-hcell { flex-shrink: 0; text-align: center; font-family: var(--mono); font-size: 7px; color: var(--dim); }
+  .legend-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding-left: 120px; flex-wrap: wrap; }
+  .legend-swatch { display: flex; flex-direction: column; align-items: center; gap: 2px; font-family: var(--mono); font-size: 7px; color: var(--dim); }
+  .legend-swatch div { width: 22px; height: 10px; border-radius: 2px; }
+
+  /* ── Tooltip ── */
+  .tooltip { position: fixed; top: 12px; right: 12px; background: #1e293b; border: 1px solid var(--border);
+             border-radius: 8px; padding: 10px 14px; min-width: 160px; display: none; z-index: 100;
+             font-family: var(--mono); font-size: 10px; line-height: 1.9; color: #cbd5e1; }
+  .tooltip.show { display: block; }
+
+  /* ── Line legend ── */
+  .line-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+  .ll { display: flex; align-items: center; gap: 5px; cursor: pointer; transition: opacity .15s; }
+  .ll-line { width: 18px; height: 2px; border-radius: 1px; }
+  .ll span { font-family: var(--mono); font-size: 9px; color: var(--stone); }
+
+  /* ── Bonus stat cards ── */
+  .bonus-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 12px; }
+  .bstat { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .bstat .bsl { font-family: var(--mono); font-size: 8px; color: var(--dim); margin-bottom: 4px; }
+  .bstat .bsv { font-family: var(--mono); font-size: 22px; font-weight: 700; color: #c4b5fd; }
+  .bstat .bsn { font-family: var(--mono); font-size: 8px; color: #334155; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-eyebrow">India · Lok Sabha · Monte Carlo Analysis · 1,500 simulations per seat-total</div>
+  <h1>Does the number of Lok Sabha seats<br>change who wins — and by how much?</h1>
+  <p>Five counterfactual scenarios &nbsp;·&nbsp; Seat totals 534–1,000 &nbsp;·&nbsp; Based on 2024 bloc-level declared results</p>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" data-tab="explore">Scenario Explorer</button>
+  <button class="tab" data-tab="heatmap">Heatmap</button>
+  <button class="tab" data-tab="bonus">Bonus Volatility</button>
+</div>
+
+<div class="shell">
+
+  <!-- TOOLTIP -->
+  <div class="tooltip" id="tooltip"></div>
+
+  <!-- ══ PANEL: EXPLORE ══════════════════════════════════════════════════════ -->
+  <div class="panel active" id="panel-explore">
+
+    <!-- Scenario cards -->
+    <div class="scenario-grid" id="scen-cards"></div>
+
+    <!-- Two-col -->
+    <div class="two-col">
+
+      <!-- Hemicycle + slider -->
+      <div class="module">
+        <div class="module-label">Parliament composition</div>
+        <svg id="hemi-svg" viewBox="0 0 320 165" style="width:100%;max-width:340px"></svg>
+        <div style="margin-top:12px">
+          <div class="slider-row">
+            <span style="color:var(--stone)">Total seats</span>
+            <span style="color:var(--saffron);font-weight:700" id="seat-display">543</span>
+          </div>
+          <input type="range" id="seat-slider" min="534" max="1000" step="10" value="543">
+          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;color:#334155;margin-top:2px">
+            <span>534</span><span>1,000</span>
+          </div>
+          <div class="seat-buttons">
+            <button class="sbtn active" data-seat="543">Current<br>543</button>
+            <button class="sbtn" data-seat="850">Proposed<br>850</button>
+            <button class="sbtn" data-seat="1000">Stress<br>1,000</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <!-- P(majority) -->
+        <div class="module" style="flex:1">
+          <div class="module-label" id="pmaj-label">P(NDA wins outright majority)</div>
+          <div class="big-number" id="pmaj-number" style="color:var(--saffron)">—</div>
+          <div class="pbar-track"><div class="pbar-fill" id="pbar" style="width:0%;background:var(--saffron)"></div></div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--dim)" id="quota-line">at 543 seats · quota = 272</div>
+          <div class="tossup-alert" id="tossup-alert" style="display:none"></div>
+        </div>
+        <!-- Mini metrics -->
+        <div class="mini-grid">
+          <div class="mini">
+            <div class="ml">Winner's bonus</div>
+            <div class="mv" id="bonus-val" style="color:var(--saffron)">—</div>
+            <div class="mn">Seat share − vote share</div>
+          </div>
+          <div class="mini">
+            <div class="ml">Bonus volatility (std)</div>
+            <div class="mv" id="std-val" style="color:#8b5cf6">—</div>
+            <div class="mn">Election-to-election swing</div>
+          </div>
+        </div>
+        <!-- Insight -->
+        <div class="insight">
+          <div class="insight-label">KEY INSIGHT</div>
+          <p id="insight-text">Select a scenario above.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Probability curve -->
+    <div class="module">
+      <div class="module-label">P(majority) vs. total seats — all five scenarios</div>
+      <svg id="curve-svg" viewBox="0 0 600 200" style="width:100%"></svg>
+      <div class="line-legend" id="line-legend"></div>
+    </div>
+  </div>
+
+  <!-- ══ PANEL: HEATMAP ══════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-heatmap">
+    <p style="font-family:var(--mono);font-size:10px;color:var(--stone);margin-bottom:14px">
+      Each cell = P(tracked bloc wins majority). Brighter = more certain. Hover for exact values.
+      Click scenario names or legend below to highlight.
+    </p>
+    <div class="module">
+      <div id="hm-container"></div>
+      <div class="legend-row" id="hm-legend"></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px" id="hm-scen-btns"></div>
+  </div>
+
+  <!-- ══ PANEL: BONUS ════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-bonus">
+    <p style="font-family:var(--mono);font-size:10px;color:var(--stone);margin-bottom:14px">
+      Winner's bonus volatility falls as House size grows — outcomes become <em>more predictable</em>,
+      not more fair. Predictability is not the same thing as fairness.
+    </p>
+    <div class="module">
+      <svg id="bonus-svg" viewBox="0 0 600 200" style="width:100%"></svg>
+    </div>
+    <div class="bonus-stats" id="bonus-stats"></div>
+  </div>
+
+  <!-- ══ DISCLAIMER ══════════════════════════════════════════════════════════ -->
+  <div class="disclaimer">
+    <div class="dtitle">⚠ MODEL CAVEATS — read before citing any number</div>
+    <p>
+      <b>D1 · Seat-share proxy:</b> Dirichlet means use 2024 seat shares (~52.9% NDA), not real vote shares (~36–46%). P(majority) numbers are upward-biased in level; directional findings are robust.<br>
+      <b>D2 · Variance too tight:</b> Concentration=18 gives ±11.5pp per-seat std. Real TCPD constituency data shows ±21pp (correct ≈ 5). Winner's bonus is ~1.8× understated in absolute level.<br>
+      <b>D3 · Not a forecast:</b> Anchored to 2024. Political realignment, new alliances, and delimitation outcomes are not modelled.<br>
+      <b>Coin-flip principle:</b> More seats do not make elections fairer. They narrow the spread around whatever mean already exists. If that mean is above 50%, more seats entrench the existing lead further — not reduce it.
+    </p>
+  </div>
+
+</div><!-- /shell -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════════════
+const SWEEP=[{total_seats:534,pct_nda_majority:0.9687,seat_bonus_leader:0.0119,bonus_std_across_elections:0.0126},{total_seats:544,pct_nda_majority:0.9707,seat_bonus_leader:0.0114,bonus_std_across_elections:0.0127},{total_seats:554,pct_nda_majority:0.972,seat_bonus_leader:0.0118,bonus_std_across_elections:0.0123},{total_seats:564,pct_nda_majority:0.9713,seat_bonus_leader:0.0119,bonus_std_across_elections:0.0118},{total_seats:574,pct_nda_majority:0.9747,seat_bonus_leader:0.0118,bonus_std_across_elections:0.0118},{total_seats:584,pct_nda_majority:0.9693,seat_bonus_leader:0.0111,bonus_std_across_elections:0.0117},{total_seats:594,pct_nda_majority:0.9707,seat_bonus_leader:0.0114,bonus_std_across_elections:0.0116},{total_seats:604,pct_nda_majority:0.9773,seat_bonus_leader:0.0118,bonus_std_across_elections:0.0112},{total_seats:614,pct_nda_majority:0.9793,seat_bonus_leader:0.0118,bonus_std_across_elections:0.0113},{total_seats:624,pct_nda_majority:0.976,seat_bonus_leader:0.0117,bonus_std_across_elections:0.0111},{total_seats:634,pct_nda_majority:0.974,seat_bonus_leader:0.0112,bonus_std_across_elections:0.0111},{total_seats:644,pct_nda_majority:0.976,seat_bonus_leader:0.0114,bonus_std_across_elections:0.0112},{total_seats:654,pct_nda_majority:0.9787,seat_bonus_leader:0.0117,bonus_std_across_elections:0.0112},{total_seats:664,pct_nda_majority:0.9827,seat_bonus_leader:0.0118,bonus_std_across_elections:0.011},{total_seats:674,pct_nda_majority:0.9827,seat_bonus_leader:0.0114,bonus_std_across_elections:0.0108},{total_seats:684,pct_nda_majority:0.9827,seat_bonus_leader:0.0119,bonus_std_across_elections:0.0108},{total_seats:694,pct_nda_majority:0.9867,seat_bonus_leader:0.0113,bonus_std_across_elections:0.0106},{total_seats:704,pct_nda_majority:0.986,seat_bonus_leader:0.0115,bonus_std_across_elections:0.0103},{total_seats:714,pct_nda_majority:0.984,seat_bonus_leader:0.0121,bonus_std_across_elections:0.0105},{total_seats:724,pct_nda_majority:0.9847,seat_bonus_leader:0.0118,bonus_std_across_elections:0.0108},{total_seats:734,pct_nda_majority:0.984,seat_bonus_leader:0.0115,bonus_std_across_elections:0.0104},{total_seats:744,pct_nda_majority:0.9867,seat_bonus_leader:0.0114,bonus_std_across_elections:0.0103},{total_seats:754,pct_nda_majority:0.9827,seat_bonus_leader:0.0115,bonus_std_across_elections:0.0103},{total_seats:764,pct_nda_majority:0.994,seat_bonus_leader:0.0115,bonus_std_across_elections:0.0103},{total_seats:774,pct_nda_majority:0.9847,seat_bonus_leader:0.0114,bonus_std_across_elections:0.0099},{total_seats:784,pct_nda_majority:0.9793,seat_bonus_leader:0.0116,bonus_std_across_elections:0.0102},{total_seats:794,pct_nda_majority:0.9853,seat_bonus_leader:0.0115,bonus_std_across_elections:0.0103},{total_seats:804,pct_nda_majority:0.9867,seat_bonus_leader:0.0114,bonus_std_across_elections:0.0097},{total_seats:814,pct_nda_majority:0.9853,seat_bonus_leader:0.0113,bonus_std_across_elections:0.0099},{total_seats:824,pct_nda_majority:0.9887,seat_bonus_leader:0.0114,bonus_std_across_elections:0.0097},{total_seats:834,pct_nda_majority:0.99,seat_bonus_leader:0.0119,bonus_std_across_elections:0.0097},{total_seats:844,pct_nda_majority:0.992,seat_bonus_leader:0.0115,bonus_std_across_elections:0.0099},{total_seats:850,pct_nda_majority:0.9873,seat_bonus_leader:0.0114,bonus_std_across_elections:0.0099},{total_seats:854,pct_nda_majority:0.9947,seat_bonus_leader:0.0115,bonus_std_across_elections:0.0098},{total_seats:864,pct_nda_majority:0.9927,seat_bonus_leader:0.0112,bonus_std_across_elections:0.0102},{total_seats:874,pct_nda_majority:0.9913,seat_bonus_leader:0.0117,bonus_std_across_elections:0.0098},{total_seats:884,pct_nda_majority:0.9927,seat_bonus_leader:0.0113,bonus_std_across_elections:0.0099},{total_seats:894,pct_nda_majority:0.9913,seat_bonus_leader:0.0118,bonus_std_across_elections:0.0097},{total_seats:904,pct_nda_majority:0.992,seat_bonus_leader:0.0112,bonus_std_across_elections:0.0092},{total_seats:914,pct_nda_majority:0.9947,seat_bonus_leader:0.0114,bonus_std_across_elections:0.0092},{total_seats:924,pct_nda_majority:0.9967,seat_bonus_leader:0.0116,bonus_std_across_elections:0.0094},{total_seats:934,pct_nda_majority:0.9953,seat_bonus_leader:0.0116,bonus_std_across_elections:0.0091},{total_seats:944,pct_nda_majority:0.986,seat_bonus_leader:0.0116,bonus_std_across_elections:0.0095},{total_seats:954,pct_nda_majority:0.994,seat_bonus_leader:0.0117,bonus_std_across_elections:0.0091},{total_seats:964,pct_nda_majority:0.9967,seat_bonus_leader:0.0117,bonus_std_across_elections:0.0091},{total_seats:974,pct_nda_majority:0.9973,seat_bonus_leader:0.0119,bonus_std_across_elections:0.0086},{total_seats:984,pct_nda_majority:0.994,seat_bonus_leader:0.0117,bonus_std_across_elections:0.0089},{total_seats:994,pct_nda_majority:0.9927,seat_bonus_leader:0.0118,bonus_std_across_elections:0.0091},{total_seats:1000,pct_nda_majority:0.9947,seat_bonus_leader:0.0119,bonus_std_across_elections:0.0086}];
+
+const SCEN_RAW=[{s:"S0_NDA_Real",t:534,p:1.0,b:0.1359,bs:0.0168,bl:"NDA"},{s:"S0_NDA_Real",t:554,p:1.0,b:0.1367,bs:0.0166,bl:"NDA"},{s:"S0_NDA_Real",t:594,p:1.0,b:0.136,bs:0.0155,bl:"NDA"},{s:"S0_NDA_Real",t:634,p:1.0,b:0.1369,bs:0.0154,bl:"NDA"},{s:"S0_NDA_Real",t:674,p:1.0,b:0.1362,bs:0.0147,bl:"NDA"},{s:"S0_NDA_Real",t:714,p:1.0,b:0.1369,bs:0.0142,bl:"NDA"},{s:"S0_NDA_Real",t:754,p:1.0,b:0.1363,bs:0.0141,bl:"NDA"},{s:"S0_NDA_Real",t:794,p:1.0,b:0.1369,bs:0.0137,bl:"NDA"},{s:"S0_NDA_Real",t:850,p:1.0,b:0.1363,bs:0.0133,bl:"NDA"},{s:"S0_NDA_Real",t:934,p:1.0,b:0.1368,bs:0.0128,bl:"NDA"},{s:"S0_NDA_Real",t:1000,p:1.0,b:0.1363,bs:0.0124,bl:"NDA"},{s:"S1_INDIA_Mirror",t:534,p:1.0,b:0.1359,bs:0.0168,bl:"INDIA"},{s:"S1_INDIA_Mirror",t:554,p:1.0,b:0.1367,bs:0.0166,bl:"INDIA"},{s:"S1_INDIA_Mirror",t:594,p:1.0,b:0.136,bs:0.0155,bl:"INDIA"},{s:"S1_INDIA_Mirror",t:634,p:1.0,b:0.1369,bs:0.0154,bl:"INDIA"},{s:"S1_INDIA_Mirror",t:674,p:1.0,b:0.1362,bs:0.0147,bl:"INDIA"},{s:"S1_INDIA_Mirror",t:714,p:1.0,b:0.1369,bs:0.0142,bl:"INDIA"},{s:"S1_INDIA_Mirror",t:754,p:1.0,b:0.1363,bs:0.0141,bl:"INDIA"},{s:"S1_INDIA_Mirror",t:794,p:1.0,b:0.1369,bs:0.0137,bl:"INDIA"},{s:"S1_INDIA_Mirror",t:850,p:1.0,b:0.1363,bs:0.0133,bl:"INDIA"},{s:"S1_INDIA_Mirror",t:934,p:1.0,b:0.1368,bs:0.0128,bl:"INDIA"},{s:"S1_INDIA_Mirror",t:1000,p:1.0,b:0.1363,bs:0.0124,bl:"INDIA"},{s:"S2_Tossup",t:534,p:0.26,b:0.0113,bs:0.034,bl:"NDA"},{s:"S2_Tossup",t:554,p:0.2507,b:0.0111,bs:0.033,bl:"NDA"},{s:"S2_Tossup",t:594,p:0.244,b:0.0113,bs:0.032,bl:"NDA"},{s:"S2_Tossup",t:634,p:0.238,b:0.011,bs:0.031,bl:"NDA"},{s:"S2_Tossup",t:674,p:0.2327,b:0.011,bs:0.0299,bl:"NDA"},{s:"S2_Tossup",t:714,p:0.228,b:0.0112,bs:0.0291,bl:"NDA"},{s:"S2_Tossup",t:754,p:0.2207,b:0.011,bs:0.0283,bl:"NDA"},{s:"S2_Tossup",t:794,p:0.2173,b:0.0111,bs:0.0276,bl:"NDA"},{s:"S2_Tossup",t:850,p:0.2133,b:0.0111,bs:0.0267,bl:"NDA"},{s:"S2_Tossup",t:934,p:0.2127,b:0.011,bs:0.0257,bl:"NDA"},{s:"S2_Tossup",t:1000,p:0.2073,b:0.0111,bs:0.0248,bl:"NDA"},{s:"S3_INDIA_Small",t:534,p:0.9507,b:0.0423,bs:0.0224,bl:"INDIA"},{s:"S3_INDIA_Small",t:554,p:0.9607,b:0.0425,bs:0.0213,bl:"INDIA"},{s:"S3_INDIA_Small",t:594,p:0.966,b:0.0429,bs:0.0203,bl:"INDIA"},{s:"S3_INDIA_Small",t:634,p:0.9727,b:0.0432,bs:0.0196,bl:"INDIA"},{s:"S3_INDIA_Small",t:674,p:0.9753,b:0.043,bs:0.0191,bl:"INDIA"},{s:"S3_INDIA_Small",t:714,p:0.9787,b:0.0432,bs:0.0186,bl:"INDIA"},{s:"S3_INDIA_Small",t:754,p:0.9833,b:0.0432,bs:0.018,bl:"INDIA"},{s:"S3_INDIA_Small",t:794,p:0.986,b:0.0433,bs:0.0176,bl:"INDIA"},{s:"S3_INDIA_Small",t:850,p:0.9873,b:0.0432,bs:0.0171,bl:"INDIA"},{s:"S3_INDIA_Small",t:934,p:0.9913,b:0.0433,bs:0.0165,bl:"INDIA"},{s:"S3_INDIA_Small",t:1000,p:0.9913,b:0.0433,bs:0.016,bl:"INDIA"},{s:"S4_NDA_Small",t:534,p:0.5873,b:0.0176,bs:0.031,bl:"NDA"},{s:"S4_NDA_Small",t:554,p:0.6113,b:0.0183,bs:0.0294,bl:"NDA"},{s:"S4_NDA_Small",t:594,p:0.6467,b:0.0183,bs:0.0283,bl:"NDA"},{s:"S4_NDA_Small",t:634,p:0.6647,b:0.018,bs:0.0276,bl:"NDA"},{s:"S4_NDA_Small",t:674,p:0.6833,b:0.0179,bs:0.0265,bl:"NDA"},{s:"S4_NDA_Small",t:714,p:0.706,b:0.0182,bs:0.0262,bl:"NDA"},{s:"S4_NDA_Small",t:754,p:0.7233,b:0.018,bs:0.0255,bl:"NDA"},{s:"S4_NDA_Small",t:794,p:0.7413,b:0.018,bs:0.0249,bl:"NDA"},{s:"S4_NDA_Small",t:850,p:0.758,b:0.018,bs:0.0244,bl:"NDA"},{s:"S4_NDA_Small",t:934,p:0.7847,b:0.0181,bs:0.0235,bl:"NDA"},{s:"S4_NDA_Small",t:1000,p:0.7973,b:0.018,bs:0.023,bl:"NDA"}];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════════════════
+const SCENARIOS = {
+  S0_NDA_Real:     { label:"NDA +11pp", subtitle:"2024 actual result",     icon:"🔶", ndaF:0.536, indF:0.425, col:"#FF9933", bloc:"NDA"   },
+  S1_INDIA_Mirror: { label:"INDIA +11pp",subtitle:"Mirror of S0",          icon:"🟩", ndaF:0.425, indF:0.536, col:"#138808", bloc:"INDIA" },
+  S2_Tossup:       { label:"50/50",      subtitle:"True toss-up",          icon:"⚖️", ndaF:0.476, indF:0.476, col:"#7c3aed", bloc:"NDA"   },
+  S3_INDIA_Small:  { label:"INDIA +3pp", subtitle:"INDIA narrow favourite",icon:"🟢", ndaF:0.461, indF:0.491, col:"#22c55e", bloc:"INDIA" },
+  S4_NDA_Small:    { label:"NDA +3pp",   subtitle:"NDA narrow favourite",  icon:"🟠", ndaF:0.491, indF:0.461, col:"#f97316", bloc:"NDA"   },
+};
+const SKEYS = ["S0_NDA_Real","S1_INDIA_Mirror","S2_Tossup","S3_INDIA_Small","S4_NDA_Small"];
+const LINE_COL = { S0_NDA_Real:"#FF9933", S1_INDIA_Mirror:"#22c55e", S2_Tossup:"#a78bfa", S3_INDIA_Small:"#34d399", S4_NDA_Small:"#fb923c" };
+
+const INSIGHTS = {
+  S0_NDA_Real:    "An 11pp lead is decisive at every seat count. NDA wins all simulated elections regardless of House size.",
+  S1_INDIA_Mirror:"Exact mirror of S0: a +11pp INDIA lead is equally decisive. The system treats both blocs identically.",
+  S2_Tossup:      "In a genuine toss-up, NEITHER side benefits from more seats. More seats raise the hung-parliament rate from 48% to 59%.",
+  S3_INDIA_Small: "A 3pp lead is competitive but not certain. More seats gradually raise INDIA's probability — entrenchment is symmetric.",
+  S4_NDA_Small:   "Mirror of S3: NDA with a 3pp lead behaves almost identically to INDIA with a 3pp lead. Entrenchment is not party-specific.",
+};
+
+// Build lookup: scenario -> seat -> row
+const SMAP = {};
+for (const r of SCEN_RAW) {
+  if (!SMAP[r.s]) SMAP[r.s] = {};
+  SMAP[r.s][r.t] = r;
+}
+const SCEN_SEATS = [...new Set(SCEN_RAW.map(r=>r.t))].sort((a,b)=>a-b);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let activeScen = "S0_NDA_Real";
+let seatVal = 543;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+const pct = (v,d=1) => v >= 0.999 ? "~100%" : (v*100).toFixed(d)+"%";
+const lerp = (a,b,t) => a+(b-a)*t;
+const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
+
+function closestRow(rows, seat) {
+  return rows.reduce((best,r)=>Math.abs(r.t-seat)<Math.abs(best.t-seat)?r:best, rows[0]);
+}
+function closestSweep(seat) {
+  return SWEEP.reduce((best,r)=>Math.abs(r.total_seats-seat)<Math.abs(best.total_seats-seat)?r:best, SWEEP[0]);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HEMICYCLE
+// ═══════════════════════════════════════════════════════════════════════════
+function drawHemicycle() {
+  const svg = document.getElementById("hemi-svg");
+  const sc = SCENARIOS[activeScen];
+  const cx=160, cy=148, r1=52, r2=105;
+  const ndaF=sc.ndaF, indF=sc.indF, othF=Math.max(0,1-ndaF-indF);
+
+  function arcPath(cx,cy,r,startD,endD) {
+    const s=(startD-180)*Math.PI/180, e=(endD-180)*Math.PI/180;
+    const x1=cx+r*Math.cos(s), y1=cy+r*Math.sin(s);
+    const x2=cx+r*Math.cos(e), y2=cy+r*Math.sin(e);
+    const lg=endD-startD>180?1:0;
+    return {x1,y1,x2,y2,lg};
+  }
+
+  const segs=[{f:ndaF,c:"#FF9933",l:"NDA"},{f:indF,c:"#138808",l:"IND"},{f:othF,c:"#334155",l:"Oth"}];
+  let paths="", startD=0;
+  for(const seg of segs){
+    if(seg.f<0.002){startD+=seg.f*180;continue;}
+    const endD=startD+seg.f*180;
+    const a1=arcPath(cx,cy,r1,startD,endD);
+    const a2=arcPath(cx,cy,r2,startD,endD);
+    paths+=`<path d="M ${a1.x1} ${a1.y1} A ${r1} ${r1} 0 ${a1.lg} 1 ${a1.x2} ${a1.y2} L ${a2.x2} ${a2.y2} A ${r2} ${r2} 0 ${a2.lg} 0 ${a2.x1} ${a2.y1} Z" fill="${seg.c}" opacity="0.92" stroke="#080f1a" stroke-width="1"/>`;
+    startD=endD;
+  }
+
+  // 50% majority line
+  const majA=(0.5*180-180)*Math.PI/180;
+  const mx1=cx+r1*Math.cos(majA), my1=cy+r1*Math.sin(majA);
+  const mx2=cx+r2*Math.cos(majA), my2=cy+r2*Math.sin(majA);
+
+  // Outer rim arc
+  const rim=`<path d="M ${cx-r2-10} ${cy} A ${r2+10} ${r2+10} 0 0 1 ${cx+r2+10} ${cy} Z" fill="none" stroke="#1a3250" stroke-width="1.5"/>`;
+
+  // Centre text
+  const ctext=`
+    <text x="${cx}" y="${cy-10}" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="700" font-family="monospace">${seatVal}</text>
+    <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#475569" font-size="8" font-family="monospace">total seats</text>
+    <text x="${cx}" y="${cy+15}" text-anchor="middle" fill="#475569" font-size="8" font-family="monospace">quota = ${Math.floor(seatVal/2)+1}</text>`;
+
+  // Legend
+  const leg=[["NDA","#FF9933",ndaF],["INDIA","#138808",indF],["Other","#334155",othF]].map(([l,c,f],i)=>
+    `<g transform="translate(${10+i*103},157)"><rect width="8" height="8" rx="1" fill="${c}"/><text x="11" y="7.5" fill="#64748b" font-size="8" font-family="monospace">${l} ${(f*100).toFixed(0)}%</text></g>`
+  ).join("");
+
+  // Majority line
+  const majLine=`<line x1="${mx1}" y1="${my1}" x2="${mx2}" y2="${my2}" stroke="white" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.7"/>
+    <text x="${cx+r2+15}" y="${my2+2}" fill="#94a3b8" font-size="8" font-family="monospace">50%</text>`;
+
+  svg.innerHTML = `<defs><filter id="g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    ${rim}${paths}${majLine}${ctext}${leg}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXPLORE PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+function updateExplore() {
+  const sc = SCENARIOS[activeScen];
+  const rows = SCEN_RAW.filter(r=>r.s===activeScen);
+  const row  = closestRow(rows, seatVal);
+  const sweepRow = closestSweep(seatVal);
+
+  // P(majority)
+  const p = row?.p ?? 0;
+  const bloc = row?.bl ?? sc.bloc;
+  document.getElementById("pmaj-label").textContent = `P(${bloc} wins outright majority)`;
+  document.getElementById("pmaj-number").textContent = pct(p);
+  document.getElementById("pmaj-number").style.color = sc.col;
+  document.getElementById("pbar").style.width = clamp(p*100,0,100)+"%";
+  document.getElementById("pbar").style.background = sc.col;
+  document.getElementById("quota-line").textContent = `at ${seatVal} seats · quota = ${Math.floor(seatVal/2)+1}`;
+
+  // Tossup alert
+  const ta = document.getElementById("tossup-alert");
+  if(activeScen==="S2_Tossup"){
+    ta.style.display="block";
+    ta.innerHTML=`⚠ In a toss-up: P(NDA win) ≈ P(INDIA win) ≈ ${pct(p)}.<br>Remaining ~${pct(Math.max(0,1-p*2),0)} → hung parliament.`;
+  } else ta.style.display="none";
+
+  // Bonus + std (use sweep for std since it's the NDA-baseline sweep)
+  document.getElementById("bonus-val").textContent = `+${pct(row?.b??0,1)}`;
+  document.getElementById("bonus-val").style.color = sc.col;
+  document.getElementById("std-val").textContent = `±${pct(sweepRow.bonus_std_across_elections,2)}`;
+
+  // Insight
+  document.getElementById("insight-text").textContent = INSIGHTS[activeScen];
+
+  drawHemicycle();
+  drawCurve();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CURVE CHART
+// ═══════════════════════════════════════════════════════════════════════════
+function drawCurve() {
+  const svg = document.getElementById("curve-svg");
+  const W=600,H=200,P={t:22,r:18,b:38,l:46};
+  const iW=W-P.l-P.r, iH=H-P.t-P.b;
+  const seats=SCEN_SEATS;
+  const xS=s=>P.l+((s-seats[0])/(seats[seats.length-1]-seats[0]))*iW;
+  const yS=p=>P.t+(1-p)*iH;
+  const xT=[534,600,700,800,850,900,1000];
+  const yT=[0,0.25,0.5,0.75,1.0];
+  const REF={543:"Current\n543",850:"Proposed\n850",1000:"Stress\n1,000"};
+
+  let out="";
+
+  // Grid
+  for(const y of yT){
+    out+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yS(y)}" y2="${yS(y)}" stroke="${y===0.5?"#334155":"#111d2d"}" stroke-width="${y===0.5?1.5:0.5}"/>`;
+    out+=`<text x="${P.l-4}" y="${yS(y)+4}" fill="#475569" font-size="8" text-anchor="end" font-family="monospace">${(y*100).toFixed(0)}%</text>`;
+  }
+
+  // Ref lines
+  for(const [seat,lbl] of Object.entries(REF)){
+    out+=`<line x1="${xS(+seat)}" x2="${xS(+seat)}" y1="${P.t}" y2="${H-P.b}" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.45"/>`;
+    out+=`<text x="${xS(+seat)}" y="${P.t-5}" fill="#f59e0b" font-size="7" text-anchor="middle" font-family="monospace">${lbl.split('\n').join(' ')}</text>`;
+  }
+
+  // Slider line
+  const sliderRows=SCEN_RAW.filter(r=>r.s===activeScen);
+  if(sliderRows.length){
+    const slr=closestRow(sliderRows,seatVal);
+    out+=`<line x1="${xS(slr.t)}" x2="${xS(slr.t)}" y1="${P.t}" y2="${H-P.b}" stroke="white" stroke-width="1" opacity="0.3"/>`;
+    out+=`<circle cx="${xS(slr.t)}" cy="${yS(slr.p)}" r="4" fill="${SCENARIOS[activeScen].col}" stroke="white" stroke-width="1.5"/>`;
+  }
+
+  // Lines
+  for(const sk of SKEYS){
+    const rows=SCEN_RAW.filter(r=>r.s===sk).sort((a,b)=>a.t-b.t);
+    if(!rows.length) continue;
+    const d=rows.map((r,i)=>`${i===0?"M":"L"}${xS(r.t)},${yS(r.p)}`).join(" ");
+    const active=sk===activeScen;
+    out+=`<path d="${d}" fill="none" stroke="${LINE_COL[sk]}" stroke-width="${active?2.5:1}" opacity="${active?1:0.18}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+
+  // Axes
+  for(const s of xT) out+=`<text x="${xS(s)}" y="${H-P.b+14}" fill="#475569" font-size="8" text-anchor="middle" font-family="monospace">${s}</text>`;
+  out+=`<text x="${W/2}" y="${H-2}" fill="#475569" font-size="8" text-anchor="middle" font-family="monospace">Total Lok Sabha seats</text>`;
+  out+=`<text x="8" y="${H/2}" fill="#475569" font-size="8" text-anchor="middle" transform="rotate(-90,8,${H/2})" font-family="monospace">P(majority)</text>`;
+
+  svg.innerHTML=out;
+
+  // Legend
+  const ll=document.getElementById("line-legend");
+  ll.innerHTML=SKEYS.map(sk=>`
+    <div class="ll" data-scen="${sk}" style="opacity:${sk===activeScen?1:0.45}">
+      <div class="ll-line" style="background:${LINE_COL[sk]}"></div>
+      <span>${SCENARIOS[sk].label}</span>
+    </div>`).join("");
+  ll.querySelectorAll(".ll").forEach(el=>el.addEventListener("click",()=>{activeScen=el.dataset.scen;refresh();}));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HEATMAP
+// ═══════════════════════════════════════════════════════════════════════════
+function buildHeatmap() {
+  const container=document.getElementById("hm-container");
+  const hmSeats=SCEN_SEATS.filter((_,i)=>i%2===0); // every other
+  const colW=Math.max(15, Math.floor(480/hmSeats.length));
+  const labelW=120;
+
+  let html=`<div class="heatmap-wrap"><div style="display:flex;min-width:${colW*hmSeats.length+labelW}px">`;
+  html+=`<div style="width:${labelW}px;flex-shrink:0">`;
+  html+=`<div style="height:24px"></div>`;
+  for(const sk of SKEYS){
+    const sc=SCENARIOS[sk];
+    html+=`<div class="hm-label" style="height:36px;width:${labelW}px;cursor:pointer" data-scen="${sk}">
+      <span style="color:${LINE_COL[sk]};font-weight:700;font-size:9px">${sc.icon} ${sc.label}</span>
+    </div>`;
+  }
+  html+=`</div>`;
+
+  html+=`<div style="flex:1">`;
+  html+=`<div class="hm-header" style="display:flex;height:24px">`;
+  for(let i=0;i<hmSeats.length;i++){
+    const s=hmSeats[i];
+    const isRef=[543,850,1000].includes(s);
+    const show=i===0||i===hmSeats.length-1||isRef||i%4===0;
+    html+=`<div class="hm-hcell" style="width:${colW}px;color:${isRef?"#f59e0b":"#334155"};font-weight:${isRef?700:400};opacity:${show?1:0}">${s}</div>`;
+  }
+  html+=`</div>`;
+
+  for(const sk of SKEYS){
+    html+=`<div class="hm-row" data-scen="${sk}">`;
+    for(const seat of hmSeats){
+      const d=SMAP[sk]?.[seat];
+      const p=d?.p??0;
+      const col=LINE_COL[sk];
+      const alpha=Math.round(lerp(0.06,1,Math.pow(p,0.65))*255).toString(16).padStart(2,"0");
+      const isRef=[543,850,1000].includes(seat);
+      html+=`<div class="hm-cell" style="width:${colW}px;background:${col}${alpha};border-left:${isRef?"1.5px solid #f59e0b55":"1px solid transparent"}"
+        data-scen="${sk}" data-seat="${seat}" data-p="${p.toFixed(3)}" data-b="${(d?.b??0).toFixed(3)}">
+        ${colW>22?(p>=0.999?"100":(p*100).toFixed(0)):""}
+      </div>`;
+    }
+    html+=`</div>`;
+  }
+  html+=`</div></div></div>`;
+
+  // Scale legend
+  html+=`<div class="legend-row">
+    <span style="color:var(--stone);font-family:var(--mono);font-size:8px">P(majority) →</span>`;
+  for(const v of [0,0.25,0.5,0.75,1]){
+    const alpha=Math.round(lerp(0.06,1,Math.pow(v,0.65))*255).toString(16).padStart(2,"0");
+    html+=`<div class="legend-swatch"><div style="background:#FF9933${alpha}"></div>${(v*100).toFixed(0)}%</div>`;
+  }
+  html+=`</div>`;
+
+  container.innerHTML=html;
+
+  // Hover tooltips
+  container.querySelectorAll(".hm-cell").forEach(el=>{
+    el.addEventListener("mouseenter",()=>{
+      const tt=document.getElementById("tooltip");
+      const sc=SCENARIOS[el.dataset.scen];
+      tt.innerHTML=`<div style="color:${LINE_COL[el.dataset.scen]};font-weight:700;margin-bottom:6px">${sc.label}</div>
+        <div>Seats: <b>${el.dataset.seat}</b></div>
+        <div>P(majority): <b>${(+el.dataset.p*100).toFixed(1)}%</b></div>
+        <div>Bonus: <b>+${(+el.dataset.b*100).toFixed(1)}pp</b></div>`;
+      tt.classList.add("show");
+    });
+    el.addEventListener("mouseleave",()=>document.getElementById("tooltip").classList.remove("show"));
+  });
+
+  // Row / label click
+  container.querySelectorAll("[data-scen]").forEach(el=>{
+    el.addEventListener("click",()=>{activeScen=el.dataset.scen;refresh();});
+  });
+
+  // Update opacity based on activeScen
+  refreshHeatmap();
+}
+
+function refreshHeatmap() {
+  document.querySelectorAll(".hm-row,.hm-label").forEach(el=>{
+    el.style.opacity=el.dataset.scen===activeScen?1:0.45;
+  });
+  // Update buttons
+  document.querySelectorAll("#hm-scen-btns button").forEach(btn=>{
+    btn.style.borderColor=btn.dataset.scen===activeScen?LINE_COL[btn.dataset.scen]:"var(--border)";
+    btn.style.color=btn.dataset.scen===activeScen?LINE_COL[btn.dataset.scen]:"var(--dim)";
+    btn.style.background=btn.dataset.scen===activeScen?`${LINE_COL[btn.dataset.scen]}22`:"transparent";
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BONUS CHART
+// ═══════════════════════════════════════════════════════════════════════════
+function buildBonusChart() {
+  const svg=document.getElementById("bonus-svg");
+  const W=600,H=200,P={t:18,r:18,b:34,l:58};
+  const iW=W-P.l-P.r, iH=H-P.t-P.b;
+  const vals=SWEEP.map(d=>d.bonus_std_across_elections);
+  const vMin=Math.min(...vals), vMax=Math.max(...vals);
+  const xS=s=>P.l+((s-534)/(1000-534))*iW;
+  const yS=v=>P.t+(1-(v-vMin)/(vMax-vMin))*iH;
+
+  const areaD=`M${xS(534)},${P.t+iH} `+SWEEP.map(d=>`L${xS(d.total_seats)},${yS(d.bonus_std_across_elections)}`).join(" ")+` L${xS(1000)},${P.t+iH} Z`;
+  const lineD=SWEEP.map((d,i)=>`${i===0?"M":"L"}${xS(d.total_seats)},${yS(d.bonus_std_across_elections)}`).join(" ");
+
+  let out=`<defs><linearGradient id="bgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.35"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.02"/></linearGradient></defs>`;
+  // Grid
+  for(const v of [vMin,lerp(vMin,vMax,0.5),vMax]){
+    out+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yS(v)}" y2="${yS(v)}" stroke="#111d2d" stroke-width="0.5"/>`;
+    out+=`<text x="${P.l-4}" y="${yS(v)+4}" fill="#475569" font-size="7" text-anchor="end" font-family="monospace">${(v*100).toFixed(2)}pp</text>`;
+  }
+  // Ref lines
+  for(const [s,l] of [[543,"Current 543"],[850,"Proposed 850"],[1000,"Stress 1,000"]]){
+    out+=`<line x1="${xS(s)}" x2="${xS(s)}" y1="${P.t}" y2="${H-P.b}" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.45"/>`;
+    out+=`<text x="${xS(s)}" y="${P.t-4}" fill="#f59e0b" font-size="7" text-anchor="middle" font-family="monospace">${l}</text>`;
+  }
+  out+=`<path d="${areaD}" fill="url(#bgrad)"/>`;
+  out+=`<path d="${lineD}" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>`;
+  // Annotation
+  out+=`<text x="${xS(780)}" y="${yS(vMax)-6}" fill="#c4b5fd" font-size="9" font-family="monospace">↓ More predictable, not fairer</text>`;
+  // X axis
+  for(const s of [534,600,700,800,850,900,1000]){
+    out+=`<text x="${xS(s)}" y="${H-P.b+13}" fill="#475569" font-size="8" text-anchor="middle" font-family="monospace">${s}</text>`;
+  }
+  out+=`<text x="${W/2}" y="${H-2}" fill="#475569" font-size="8" text-anchor="middle" font-family="monospace">Total Lok Sabha seats</text>`;
+  out+=`<text x="8" y="${H/2}" fill="#8b5cf6" font-size="8" text-anchor="middle" transform="rotate(-90,8,${H/2})" font-family="monospace">Bonus volatility (±pp)</text>`;
+  svg.innerHTML=out;
+
+  // Stat cards
+  const stats=document.getElementById("bonus-stats");
+  const pts=[534,850,1000].map(s=>({s,r:SWEEP.find(d=>d.total_seats===s)||SWEEP.reduce((b,r)=>Math.abs(r.total_seats-s)<Math.abs(b.total_seats-s)?r:b,SWEEP[0])}));
+  stats.innerHTML=pts.map(({s,r})=>`
+    <div class="bstat">
+      <div class="bsl">${s} seats</div>
+      <div class="bsv">±${(r.bonus_std_across_elections*100).toFixed(2)}pp</div>
+      <div class="bsn">bonus std across elections</div>
+    </div>`).join("");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+function buildScenCards() {
+  const container=document.getElementById("scen-cards");
+  container.innerHTML=SKEYS.map(sk=>{
+    const sc=SCENARIOS[sk];
+    return `<button class="scard${sk===activeScen?" active":""}" data-scen="${sk}">
+      <div class="icon">${sc.icon}</div>
+      <div class="label">${sc.label}</div>
+      <div class="sub">${sc.subtitle}</div>
+    </button>`;
+  }).join("");
+  container.querySelectorAll(".scard").forEach(el=>{
+    el.addEventListener("click",()=>{activeScen=el.dataset.scen;refresh();});
+  });
+}
+
+function buildHmScenBtns() {
+  const c=document.getElementById("hm-scen-btns");
+  c.innerHTML=SKEYS.map(sk=>`
+    <button data-scen="${sk}" style="display:flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:var(--mono);font-size:9px;color:var(--dim)">
+      <div style="width:8px;height:8px;border-radius:2px;background:${LINE_COL[sk]}"></div>${SCENARIOS[sk].label}
+    </button>`).join("");
+  c.querySelectorAll("button").forEach(btn=>{
+    btn.addEventListener("click",()=>{activeScen=btn.dataset.scen;refresh();});
+  });
+}
+
+function refresh() {
+  // Cards
+  document.querySelectorAll(".scard").forEach(el=>{
+    el.classList.toggle("active",el.dataset.scen===activeScen);
+  });
+  // Seat buttons
+  document.querySelectorAll(".sbtn").forEach(el=>{
+    el.classList.toggle("active",+el.dataset.seat===seatVal);
+  });
+  updateExplore();
+  refreshHeatmap();
+}
+
+// Tabs
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById("panel-"+t.dataset.tab).classList.add("active");
+  });
+});
+
+// Slider
+const slider=document.getElementById("seat-slider");
+slider.addEventListener("input",()=>{
+  seatVal=+slider.value;
+  document.getElementById("seat-display").textContent=seatVal;
+  document.querySelectorAll(".sbtn").forEach(el=>el.classList.toggle("active",+el.dataset.seat===seatVal));
+  refresh();
+});
+
+// Seat preset buttons
+document.querySelectorAll(".sbtn").forEach(el=>{
+  el.addEventListener("click",()=>{
+    seatVal=+el.dataset.seat;
+    slider.value=seatVal;
+    document.getElementById("seat-display").textContent=seatVal;
+    refresh();
+  });
+});
+
+// Boot
+buildScenCards();
+buildHmScenBtns();
+buildHeatmap();
+buildBonusChart();
+refresh();
+</script>
+</body>
+</html>

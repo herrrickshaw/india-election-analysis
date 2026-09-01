@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lok Sabha: Simulation Outcomes & Tipping-Point States</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07101d;--surface:#0d1c30;--card:#111f35;--border:#1a3050;
+  --saffron:#FF9933;--green:#138808;--hung:#6d28d9;
+  --text:#dde4ee;--dim:#5a6e86;--mono:'JetBrains Mono',monospace;
+  --sans:'Space Grotesk',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;min-height:100vh}
+
+/* ── Layout */
+.page{max-width:1100px;margin:0 auto;padding:0 18px 48px}
+
+/* ── Header */
+.hdr{border-bottom:1px solid var(--border);padding:22px 18px 16px}
+.hdr-eye{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--saffron);margin-bottom:6px}
+.hdr h1{font-size:clamp(18px,3vw,28px);font-weight:700;letter-spacing:-0.5px;color:#f0f5ff;line-height:1.1}
+.hdr p{color:var(--dim);font-size:11px;margin-top:6px}
+
+/* ── Section titles */
+.sec-title{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:2.5px;color:var(--dim);margin-bottom:12px;margin-top:28px;display:flex;align-items:center;gap:10px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── Scenario pills */
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.pill{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;
+  color:var(--dim);font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;transition:all .15s}
+.pill.active,.pill:hover{border-color:currentColor}
+.pill .badge{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
+
+/* ── Chart containers */
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.chart-card h3{font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px}
+.chart-card .sub{font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:10px}
+canvas{display:block;width:100%!important}
+
+/* ── Big stacked area */
+.area-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.area-wrap h3{font-size:12px;font-weight:700;margin-bottom:2px}
+.area-wrap .sub{font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:14px}
+
+/* ── Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.stat .label{font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:4px}
+.stat .val{font-family:var(--mono);font-size:22px;font-weight:700;line-height:1}
+.stat .note{font-family:var(--mono);font-size:8px;color:#334a60;margin-top:3px}
+
+/* ── Tipping point section */
+.tp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.tp-grid{grid-template-columns:1fr}}
+
+.tp-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
+.tp-card h3{font-size:11px;font-weight:700;margin-bottom:2px}
+.tp-card .sub{font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:12px}
+
+/* ── State bar chart */
+.state-bars{display:flex;flex-direction:column;gap:5px}
+.sbar-row{display:flex;align-items:center;gap:8px}
+.sbar-label{width:120px;font-family:var(--mono);font-size:8px;color:var(--dim);flex-shrink:0;text-align:right}
+.sbar-track{flex:1;height:18px;background:#0a1628;border-radius:3px;overflow:hidden;position:relative}
+.sbar-nda{position:absolute;left:0;top:0;height:100%;background:var(--saffron);border-radius:3px 0 0 3px;transition:width .4s}
+.sbar-india{position:absolute;top:0;height:100%;background:var(--green);border-radius:0 3px 3px 0;transition:left .4s,width .4s}
+.sbar-seats{width:28px;font-family:var(--mono);font-size:8px;color:var(--dim);text-align:right;flex-shrink:0}
+.sbar-piv{width:42px;font-family:var(--mono);font-size:9px;font-weight:700;color:var(--saffron);text-align:right;flex-shrink:0}
+
+/* ── Legend */
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+.leg-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+
+/* ── Disclaimer */
+.disc{background:#150a0a;border:1px solid #7f1d1d;border-radius:8px;padding:12px 16px;margin-top:22px}
+.disc .dt{font-family:var(--mono);font-size:9px;font-weight:700;color:#ef4444;margin-bottom:6px}
+.disc p{font-family:var(--mono);font-size:9px;color:#fca5a5;line-height:1.8}
+.disc b{color:#f87171}
+
+/* ── Inline table */
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:9px}
+th{color:var(--dim);font-weight:700;padding:5px 8px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:5px 8px;border-bottom:1px solid #0d1c2a;color:var(--text)}
+tr:hover td{background:#0d1e30}
+.tright{text-align:right}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-eye">India · Lok Sabha · 5,000 simulations per scenario · 8,000 tipping-point attribution sims</div>
+  <h1>Simulation Outcomes & State Tipping Points</h1>
+  <p>8 scenarios — from 2024 actual to razor-edge — showing NDA win %, INDIA win %, and hung parliament % at every seat total</p>
+</div>
+
+<div class="page">
+
+  <!-- ── SCENARIO SELECTOR ────────────────────────────────────────────── -->
+  <div class="sec-title">Select Scenario</div>
+  <div class="pills" id="pills"></div>
+
+  <!-- ── KEY STATS ─────────────────────────────────────────────────────── -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat"><div class="label">P(NDA majority) at 543 seats</div><div class="val" id="st-nda" style="color:var(--saffron)">—</div><div class="note">Current House size</div></div>
+    <div class="stat"><div class="label">P(INDIA majority) at 543 seats</div><div class="val" id="st-india" style="color:var(--green)">—</div><div class="note">Current House size</div></div>
+    <div class="stat"><div class="label">P(Hung parliament) at 543 seats</div><div class="val" id="st-hung" style="color:#a78bfa">—</div><div class="note">Neither bloc reaches 272</div></div>
+  </div>
+
+  <!-- ── STACKED AREA: WIN/HUNG/LOSS across seat totals ─────────────── -->
+  <div class="sec-title">Three-Way Split vs. Total Seats</div>
+  <div class="area-wrap">
+    <h3 id="area-title">—</h3>
+    <div class="sub">Each segment = % of 5,000 simulations with that outcome. NDA+INDIA+Hung = 100% at every point.</div>
+    <canvas id="area-canvas" height="220"></canvas>
+    <div class="legend" style="margin-top:12px">
+      <div class="leg-item"><div class="leg-dot" style="background:#FF9933"></div>NDA majority</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#138808"></div>INDIA majority</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#6d28d9"></div>Hung parliament</div>
+    </div>
+  </div>
+
+  <!-- ── ALL SCENARIOS AT 543 ──────────────────────────────────────────── -->
+  <div class="sec-title">All 8 Scenarios at 543 Seats (Current House)</div>
+  <div class="chart-card">
+    <h3>NDA win % · INDIA win % · Hung % at current 543 seats</h3>
+    <div class="sub">Each bar sums to 100%. Scenarios ordered by NDA lead margin.</div>
+    <canvas id="bar543-canvas" height="280"></canvas>
+    <div class="legend" style="margin-top:10px">
+      <div class="leg-item"><div class="leg-dot" style="background:#FF9933"></div>NDA majority</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#138808"></div>INDIA majority</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#6d28d9"></div>Hung</div>
+    </div>
+  </div>
+
+  <!-- ── TIPPING POINT ────────────────────────────────────────────────── -->
+  <div class="sec-title">State Tipping-Point Analysis (Razor-Edge Scenario · NDA +1pp)</div>
+
+  <div class="tp-grid">
+    <!-- State pivotality bars -->
+    <div class="tp-card">
+      <h3>Which state decides the election?</h3>
+      <div class="sub">Greedy pivotality: % of hung simulations where this state's NDA seats are in the minimum set needed to flip the outcome to an NDA majority. Based on 3,540 hung simulations at 543 seats.</div>
+      <div class="state-bars" id="state-bars"></div>
+      <div style="margin-top:12px;font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.6">
+        <b style="color:var(--saffron)">Why UP dominates at 99.9%:</b> Uttar Pradesh has 80 seats — the largest state by far — and a near-50/50 split (36 NDA, 43 INDIA in 2024). With a +1pp NDA lead nationally, UP's NDA seat count alone swings between ~35 and ~50, easily covering the typical 5–20 seat deficit from quota 272. Maharashtra is secondary (0.3%) only when UP's swing partially but incompletely fills the gap.
+      </div>
+    </div>
+
+    <!-- State detail table -->
+    <div class="tp-card">
+      <h3>State seat split detail (all 36 states/UTs)</h3>
+      <div class="sub">2024 declared results. Bar = NDA share (saffron) and INDIA share (green) of state's seats.</div>
+      <div style="overflow-y:auto;max-height:380px">
+        <table id="state-table">
+          <tr><th>State / UT</th><th class="tright">Seats</th><th class="tright">NDA</th><th class="tright">INDIA</th><th class="tright">Other</th><th>Split</th></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SMALL MULTIPLES: all 8 scenarios ─────────────────────────────── -->
+  <div class="sec-title">All 8 Scenarios — Probability Curves</div>
+  <div class="chart-grid" id="small-multiples"></div>
+
+  <!-- ── DISCLAIMER ───────────────────────────────────────────────────── -->
+  <div class="disc">
+    <div class="dt">⚠ Model caveats — read before citing</div>
+    <p>
+      <b>D1 · Seat-share proxy:</b> Dirichlet means use 2024 seat shares (~52.9% NDA), not real vote shares (~36–46%). P(majority) numbers are upward-biased in absolute level; directional findings are robust.<br>
+      <b>D2 · Variance too tight:</b> Concentration=18 gives ±11.5pp per-seat std. Real TCPD data shows ±21pp (correct ≈ 5). Winner's bonus understated ~1.8×.<br>
+      <b>D3 · Not a forecast:</b> Anchored to 2024. Political realignments, new alliances, delimitation outcomes not modelled.<br>
+      <b>Tipping-point metric:</b> Greedy pivotality overweights large states (UP 80 seats). It answers "which state's seats cover the deficit?" not "which state is most swingable?" — a useful but incomplete measure.
+    </p>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════════════════
+const SCEN = {
+  "S0_NDA_Real":{"desc":"NDA +11.1pp (2024 actual)","color":"#FF9933","margin_pp":11.1,"target_leader":"NDA","seats":[543,600,650,700,750,800,850,900,950,1000],"p_nda":[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0],"p_india":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"p_hung":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+  "S1_INDIA_Mirror":{"desc":"INDIA +11.1pp (exact mirror)","color":"#138808","margin_pp":11.1,"target_leader":"INDIA","seats":[543,600,650,700,750,800,850,900,950,1000],"p_nda":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"p_india":[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0],"p_hung":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+  "S2_Tossup":{"desc":"50/50 Tossup (fair coin)","color":"#7c3aed","margin_pp":0.0,"target_leader":"tossup","seats":[543,600,650,700,750,800,850,900,950,1000],"p_nda":[0.2634,0.2482,0.2316,0.2312,0.223,0.2296,0.2168,0.2098,0.2056,0.1852],"p_india":[0.278,0.2474,0.2418,0.2406,0.2386,0.2216,0.2132,0.2016,0.2022,0.1992],"p_hung":[0.4586,0.5044,0.5266,0.5282,0.5384,0.5488,0.57,0.5886,0.5922,0.6156]},
+  "S3_NDA_Small":{"desc":"NDA +3pp (narrow)","color":"#f97316","margin_pp":3.0,"target_leader":"NDA","seats":[543,600,650,700,750,800,850,900,950,1000],"p_nda":[0.9578,0.958,0.9636,0.9724,0.978,0.978,0.9794,0.9882,0.9876,0.9874],"p_india":[0.002,0.001,0.0,0.0006,0.0004,0.0,0.0002,0.0,0.0,0.0002],"p_hung":[0.0402,0.041,0.0364,0.027,0.0216,0.022,0.0204,0.0118,0.0124,0.0124]},
+  "S4_INDIA_Small":{"desc":"INDIA +3pp (narrow mirror)","color":"#22c55e","margin_pp":3.0,"target_leader":"INDIA","seats":[543,600,650,700,750,800,850,900,950,1000],"p_nda":[0.0016,0.0012,0.0002,0.0004,0.0004,0.0,0.0,0.0002,0.0,0.0],"p_india":[0.955,0.9646,0.971,0.9722,0.976,0.98,0.9826,0.987,0.9878,0.9914],"p_hung":[0.0434,0.0342,0.0288,0.0274,0.0236,0.02,0.0174,0.0128,0.0122,0.0086]},
+  "S5_NDA_Moderate":{"desc":"NDA +6pp (moderate)","color":"#fb923c","margin_pp":6.0,"target_leader":"NDA","seats":[543,600,650,700,750,800,850,900,950,1000],"p_nda":[1.0,0.9998,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0],"p_india":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"p_hung":[0.0,0.0002,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+  "S6_INDIA_Moderate":{"desc":"INDIA +6pp (moderate mirror)","color":"#4ade80","margin_pp":6.0,"target_leader":"INDIA","seats":[543,600,650,700,750,800,850,900,950,1000],"p_nda":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"p_india":[1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0],"p_hung":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},
+  "S7_Razor_Edge":{"desc":"NDA +1pp (razor-edge)","color":"#fbbf24","margin_pp":1.0,"target_leader":"NDA","seats":[543,600,650,700,750,800,850,900,950,1000],"p_nda":[0.5672,0.553,0.561,0.5516,0.5768,0.576,0.5724,0.584,0.5702,0.5708],"p_india":[0.0846,0.0648,0.0572,0.0526,0.0492,0.0428,0.041,0.0326,0.0334,0.0294],"p_hung":[0.3482,0.3822,0.3818,0.3958,0.374,0.3812,0.3866,0.3834,0.3964,0.3998]},
+};
+
+const STATES = [
+  {state:"Uttar Pradesh",seats:80,nda:36,india:43,other:1,piv:0.9989},
+  {state:"Maharashtra",seats:48,nda:17,india:30,other:1,piv:0.0031},
+  {state:"West Bengal",seats:42,nda:12,india:29,other:1,piv:0.0003},
+  {state:"Bihar",seats:40,nda:30,india:9,other:1,piv:0.0003},
+  {state:"Tamil Nadu",seats:39,nda:0,india:39,other:0,piv:0.0006},
+  {state:"Madhya Pradesh",seats:29,nda:29,india:0,other:0,piv:0.0},
+  {state:"Karnataka",seats:28,nda:19,india:9,other:0,piv:0.0},
+  {state:"Gujarat",seats:26,nda:25,india:1,other:0,piv:0.0},
+  {state:"Andhra Pradesh",seats:25,nda:21,india:0,other:4,piv:0.0},
+  {state:"Rajasthan",seats:25,nda:14,india:11,other:0,piv:0.0},
+  {state:"Odisha",seats:21,nda:20,india:1,other:0,piv:0.0},
+  {state:"Kerala",seats:20,nda:1,india:18,other:1,piv:0.0},
+  {state:"Telangana",seats:17,nda:8,india:8,other:1,piv:0.0},
+  {state:"Assam",seats:14,nda:11,india:3,other:0,piv:0.0},
+  {state:"Jharkhand",seats:14,nda:9,india:5,other:0,piv:0.0},
+  {state:"Punjab",seats:13,nda:0,india:8,other:5,piv:0.0},
+  {state:"Chhattisgarh",seats:11,nda:10,india:1,other:0,piv:0.0},
+  {state:"Haryana",seats:10,nda:5,india:5,other:0,piv:0.0},
+  {state:"Delhi",seats:7,nda:7,india:0,other:0,piv:0.0},
+  {state:"Jammu & Kashmir",seats:5,nda:1,india:2,other:2,piv:0.0},
+  {state:"Uttarakhand",seats:5,nda:5,india:0,other:0,piv:0.0},
+  {state:"Himachal Pradesh",seats:4,nda:4,india:0,other:0,piv:0.0},
+  {state:"Arunachal Pradesh",seats:2,nda:2,india:0,other:0,piv:0.0},
+  {state:"Goa",seats:2,nda:1,india:1,other:0,piv:0.0},
+  {state:"Tripura",seats:2,nda:2,india:0,other:0,piv:0.0},
+  {state:"Manipur",seats:2,nda:0,india:2,other:0,piv:0.0},
+  {state:"Meghalaya",seats:2,nda:0,india:2,other:0,piv:0.0},
+  {state:"Mizoram",seats:1,nda:0,india:0,other:1,piv:0.0},
+  {state:"Nagaland",seats:1,nda:0,india:1,other:0,piv:0.0},
+  {state:"Sikkim",seats:1,nda:0,india:0,other:1,piv:0.0},
+  {state:"Chandigarh",seats:1,nda:0,india:1,other:0,piv:0.0},
+  {state:"Andaman & Nicobar",seats:1,nda:1,india:0,other:0,piv:0.0},
+  {state:"Ladakh",seats:1,nda:0,india:0,other:1,piv:0.0},
+  {state:"Lakshadweep",seats:1,nda:0,india:1,other:0,piv:0.0},
+  {state:"Puducherry",seats:1,nda:0,india:1,other:0,piv:0.0},
+  {state:"D&NH and D&D",seats:2,nda:1,india:0,other:1,piv:0.0},
+];
+
+const SKEYS = Object.keys(SCEN);
+const SCENARIO_ORDER = ["S1_INDIA_Mirror","S6_INDIA_Moderate","S4_INDIA_Small","S2_Tossup","S7_Razor_Edge","S3_NDA_Small","S5_NDA_Moderate","S0_NDA_Real"];
+let activeScen = "S7_Razor_Edge";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+const pct = (v,d=1) => (v*100).toFixed(d)+"%";
+const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
+function hexA(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PILLS
+// ═══════════════════════════════════════════════════════════════════════════════
+function buildPills(){
+  const c = document.getElementById("pills");
+  c.innerHTML = SCENARIO_ORDER.map(sid=>{
+    const s=SCEN[sid];
+    const label = sid==="S2_Tossup"?"50/50 Tossup":
+                  sid==="S7_Razor_Edge"?"NDA +1pp ⚡":
+                  s.desc.replace(" (2024 actual)","").replace(" (exact mirror)","").replace(" (narrow mirror)","").replace(" (narrow)","").replace(" (moderate mirror)","").replace(" (moderate)","").replace(" (fair coin)","");
+    return `<button class="pill${sid===activeScen?" active":""}" data-sid="${sid}" style="color:${s.color}">
+      <span class="badge" style="background:${s.color}"></span>${label}
+    </button>`;
+  }).join("");
+  c.querySelectorAll(".pill").forEach(p=>p.addEventListener("click",()=>{activeScen=p.dataset.sid;refresh();}));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATS ROW
+// ═══════════════════════════════════════════════════════════════════════════════
+function updateStats(){
+  const s=SCEN[activeScen];
+  const i543=s.seats.indexOf(543);
+  document.getElementById("st-nda").textContent  = pct(s.p_nda[i543]);
+  document.getElementById("st-india").textContent= pct(s.p_india[i543]);
+  document.getElementById("st-hung").textContent = pct(s.p_hung[i543]);
+  document.getElementById("area-title").textContent = s.desc+" — NDA / INDIA / Hung breakdown by seat total";
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STACKED AREA CHART
+// ═══════════════════════════════════════════════════════════════════════════════
+function drawArea(){
+  const canvas=document.getElementById("area-canvas");
+  const W=canvas.parentElement.clientWidth-32;
+  canvas.width=W*2; canvas.height=440; canvas.style.height="220px";
+  const ctx=canvas.getContext("2d");
+  ctx.scale(2,2);
+  const cW=W, cH=220;
+  const P={t:18,r:18,b:36,l:42};
+  const iW=cW-P.l-P.r, iH=cH-P.t-P.b;
+  const s=SCEN[activeScen];
+  const seats=s.seats;
+  const n=seats.length;
+  const xS=i=>P.l+(i/(n-1))*iW;
+  const yS=v=>P.t+(1-v)*iH;
+
+  ctx.clearRect(0,0,cW,cH);
+  ctx.fillStyle="#07101d";
+  ctx.fillRect(0,0,cW,cH);
+
+  // Stacked values: bottom=NDA, middle=INDIA on top, top=hung
+  // Actually draw from top down: hung from 1 to p_nda+p_india, india from p_nda+p_india to p_nda, nda from p_nda to 0
+  const layers=[
+    {key:"p_hung", col:"#6d28d9", label:"Hung"},
+    {key:"p_india",col:"#138808", label:"INDIA"},
+    {key:"p_nda",  col:"#FF9933", label:"NDA"},
+  ];
+
+  // Build cumulative stacks (from bottom)
+  const stacks = seats.map((_,i)=>{
+    let cum=0;
+    const res={};
+    for(const l of [...layers].reverse()){
+      res[l.key+"_bot"]=cum;
+      cum+=s[l.key][i];
+      res[l.key+"_top"]=cum;
+    }
+    return res;
+  });
+
+  // Draw each area
+  for(const l of layers){
+    ctx.beginPath();
+    ctx.moveTo(xS(0), yS(stacks[0][l.key+"_bot"]));
+    for(let i=0;i<n;i++) ctx.lineTo(xS(i), yS(stacks[i][l.key+"_bot"]));
+    for(let i=n-1;i>=0;i--) ctx.lineTo(xS(i), yS(stacks[i][l.key+"_top"]));
+    ctx.closePath();
+    ctx.fillStyle=hexA(l.col,0.82);
+    ctx.fill();
+    // Top border line
+    ctx.beginPath();
+    ctx.moveTo(xS(0), yS(stacks[0][l.key+"_top"]));
+    for(let i=1;i<n;i++) ctx.lineTo(xS(i), yS(stacks[i][l.key+"_top"]));
+    ctx.strokeStyle=hexA(l.col,1);
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+  }
+
+  // Grid
+  [0,0.25,0.5,0.75,1].forEach(v=>{
+    ctx.beginPath();
+    ctx.moveTo(P.l,yS(v)); ctx.lineTo(cW-P.r,yS(v));
+    ctx.strokeStyle=v===0.5?"#1e3a5f":"#0f1e30";
+    ctx.lineWidth=v===0.5?1:0.5; ctx.stroke();
+    ctx.fillStyle="#475569"; ctx.font="8px JetBrains Mono";
+    ctx.textAlign="right"; ctx.fillText((v*100).toFixed(0)+"%", P.l-4, yS(v)+3);
+  });
+
+  // Ref lines
+  [[543,"543 (current)"],[850,"850"],[1000,"1,000"]].forEach(([seat,lbl])=>{
+    const i=seats.indexOf(seat); if(i<0)return;
+    ctx.beginPath(); ctx.moveTo(xS(i),P.t); ctx.lineTo(xS(i),cH-P.b);
+    ctx.strokeStyle="#f59e0b"; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle="#f59e0b"; ctx.font="7px JetBrains Mono"; ctx.textAlign="center";
+    ctx.fillText(lbl, xS(i), P.t-5);
+  });
+
+  // X axis
+  seats.forEach((s,i)=>{
+    ctx.fillStyle="#475569"; ctx.font="8px JetBrains Mono"; ctx.textAlign="center";
+    ctx.fillText(s, xS(i), cH-P.b+14);
+  });
+  ctx.fillStyle="#475569"; ctx.font="8px JetBrains Mono"; ctx.textAlign="center";
+  ctx.fillText("Total Lok Sabha seats", cW/2, cH-2);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BAR CHART — all scenarios at 543
+// ═══════════════════════════════════════════════════════════════════════════════
+function drawBar543(){
+  const canvas=document.getElementById("bar543-canvas");
+  const W=canvas.parentElement.clientWidth-32;
+  canvas.width=W*2; canvas.height=560; canvas.style.height="280px";
+  const ctx=canvas.getContext("2d"); ctx.scale(2,2);
+  const cW=W, cH=280;
+  const P={t:10,r:120,b:14,l:150};
+  const iW=cW-P.l-P.r, iH=cH-P.t-P.b;
+
+  ctx.clearRect(0,0,cW,cH);
+  ctx.fillStyle="#111f35"; ctx.fillRect(0,0,cW,cH);
+
+  const n=SCENARIO_ORDER.length;
+  const barH=Math.floor((iH-n*3)/(n));
+  const gap=3;
+
+  SCENARIO_ORDER.forEach((sid,idx)=>{
+    const s=SCEN[sid];
+    const i543=s.seats.indexOf(543);
+    const y=P.t+idx*(barH+gap);
+    const nda=s.p_nda[i543], india=s.p_india[i543], hung=s.p_hung[i543];
+
+    // Label
+    ctx.fillStyle=sid===activeScen?"#f0f5ff":"#64748b";
+    ctx.font=`${sid===activeScen?"700":"400"} 9px JetBrains Mono`;
+    ctx.textAlign="right";
+    const shortDesc=s.desc.replace(" (2024 actual)","").replace(" (exact mirror)","*").replace(" (narrow mirror)","*").replace(" (narrow)","").replace(" (moderate mirror)","*").replace(" (moderate)","").replace(" (fair coin)","");
+    ctx.fillText(shortDesc.slice(0,22), P.l-6, y+barH/2+3);
+
+    // Stacked bar
+    let x=P.l;
+    const seg=[[nda,"#FF9933"],[india,"#138808"],[hung,"#6d28d9"]];
+    for(const [v,c] of seg){
+      if(v<0.001)continue;
+      const w=v*iW;
+      ctx.fillStyle=sid===activeScen?hexA(c,0.95):hexA(c,0.45);
+      ctx.fillRect(x,y,w,barH);
+      if(w>22){
+        ctx.fillStyle="#fff"; ctx.font="7px JetBrains Mono"; ctx.textAlign="center";
+        ctx.fillText(pct(v,0), x+w/2, y+barH/2+3);
+      }
+      x+=w;
+    }
+
+    // Right: detailed values
+    ctx.fillStyle=sid===activeScen?"#94a3b8":"#334a60";
+    ctx.font="8px JetBrains Mono"; ctx.textAlign="left";
+    ctx.fillText(`NDA ${pct(nda,0)}  IND ${pct(india,0)}  HNG ${pct(hung,0)}`, iW+P.l+6, y+barH/2+3);
+  });
+
+  // X axis labels
+  [0,0.25,0.5,0.75,1].forEach(v=>{
+    ctx.fillStyle="#334a60"; ctx.font="7px JetBrains Mono"; ctx.textAlign="center";
+    ctx.fillText((v*100).toFixed(0)+"%", P.l+v*iW, cH-2);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATE BARS (tipping point)
+// ═══════════════════════════════════════════════════════════════════════════════
+function buildStateBars(){
+  const c=document.getElementById("state-bars");
+  const top=STATES.slice(0,12);
+  c.innerHTML=top.map(st=>{
+    const ndaW=(st.nda/st.seats*100).toFixed(1);
+    const indW=(st.india/st.seats*100).toFixed(1);
+    const pivLabel=st.piv>0.001?(st.piv*100).toFixed(1)+"% pivotal":"—";
+    const pivColor=st.piv>0.5?"var(--saffron)":st.piv>0.01?"#fb923c":"var(--dim)";
+    return `<div class="sbar-row">
+      <div class="sbar-label">${st.state}</div>
+      <div class="sbar-track">
+        <div class="sbar-nda" style="width:${ndaW}%"></div>
+        <div class="sbar-india" style="left:${ndaW}%;width:${indW}%"></div>
+      </div>
+      <div class="sbar-seats">${st.seats}S</div>
+      <div class="sbar-piv" style="color:${pivColor}">${pivLabel}</div>
+    </div>`;
+  }).join("");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATE TABLE
+// ═══════════════════════════════════════════════════════════════════════════════
+function buildStateTable(){
+  const tbody=STATES.map(st=>{
+    const ndaW=Math.round(st.nda/st.seats*40);
+    const indW=Math.round(st.india/st.seats*40);
+    const bar=`<div style="display:flex;height:10px;width:60px;border-radius:2px;overflow:hidden;background:#0a1628">
+      <div style="width:${ndaW}px;background:#FF9933"></div>
+      <div style="width:${indW}px;background:#138808"></div>
+    </div>`;
+    return `<tr><td>${st.state}</td><td class="tright">${st.seats}</td><td class="tright" style="color:#FF9933">${st.nda}</td><td class="tright" style="color:#138808">${st.india}</td><td class="tright" style="color:#5a6e86">${st.other}</td><td>${bar}</td></tr>`;
+  }).join("");
+  document.getElementById("state-table").innerHTML+=tbody;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SMALL MULTIPLES — one mini-chart per scenario
+// ═══════════════════════════════════════════════════════════════════════════════
+function buildSmallMultiples(){
+  const c=document.getElementById("small-multiples");
+  c.innerHTML=SCENARIO_ORDER.map(sid=>`
+    <div class="chart-card">
+      <h3 style="color:${SCEN[sid].color}">${SCEN[sid].desc.split("(")[0].trim()}</h3>
+      <div class="sub">${SCEN[sid].desc.includes("(")?SCEN[sid].desc.match(/\(([^)]+)\)/)?.[1]||"":""}</div>
+      <canvas id="sm-${sid}" height="100"></canvas>
+    </div>`).join("");
+  SCENARIO_ORDER.forEach(sid=>drawSmall(sid));
+}
+
+function drawSmall(sid){
+  const canvas=document.getElementById(`sm-${sid}`);
+  if(!canvas)return;
+  const W=canvas.parentElement.clientWidth-32;
+  canvas.width=W*2; canvas.height=200; canvas.style.height="100px";
+  const ctx=canvas.getContext("2d"); ctx.scale(2,2);
+  const cW=W, cH=100;
+  const P={t:8,r:8,b:22,l:30};
+  const iW=cW-P.l-P.r, iH=cH-P.t-P.b;
+  const s=SCEN[sid]; const n=s.seats.length;
+  const xS=i=>P.l+(i/(n-1))*iW;
+  const yS=v=>P.t+(1-v)*iH;
+
+  ctx.clearRect(0,0,cW,cH);
+  ctx.fillStyle="#111f35"; ctx.fillRect(0,0,cW,cH);
+
+  const stacks=s.seats.map((_,i)=>{
+    const ndaBot=0, ndaTop=s.p_nda[i];
+    const indBot=ndaTop, indTop=ndaTop+s.p_india[i];
+    const hngBot=indTop, hngTop=1;
+    return {ndaBot,ndaTop,indBot,indTop,hngBot,hngTop};
+  });
+
+  [["hngBot","hngTop","#6d28d9"],["indBot","indTop","#138808"],["ndaBot","ndaTop","#FF9933"]].forEach(([bot,top,col])=>{
+    ctx.beginPath();
+    ctx.moveTo(xS(0),yS(stacks[0][bot]));
+    for(let i=0;i<n;i++) ctx.lineTo(xS(i),yS(stacks[i][bot]));
+    for(let i=n-1;i>=0;i--) ctx.lineTo(xS(i),yS(stacks[i][top]));
+    ctx.closePath(); ctx.fillStyle=hexA(col,0.8); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(xS(0),yS(stacks[0][top]));
+    for(let i=1;i<n;i++) ctx.lineTo(xS(i),yS(stacks[i][top]));
+    ctx.strokeStyle=col; ctx.lineWidth=1; ctx.stroke();
+  });
+
+  // 50% line
+  ctx.beginPath(); ctx.moveTo(P.l,yS(0.5)); ctx.lineTo(cW-P.r,yS(0.5));
+  ctx.strokeStyle="#1e3a5f"; ctx.lineWidth=0.5; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+
+  // Y ticks
+  [0,0.5,1].forEach(v=>{
+    ctx.fillStyle="#334a60"; ctx.font="7px JetBrains Mono"; ctx.textAlign="right";
+    ctx.fillText((v*100).toFixed(0)+"%", P.l-3, yS(v)+3);
+  });
+
+  // X ticks
+  s.seats.filter((_,i)=>i===0||i===Math.floor(n/2)||i===n-1).forEach((seat,_,arr)=>{
+    const i=s.seats.indexOf(seat);
+    ctx.fillStyle="#334a60"; ctx.font="7px JetBrains Mono"; ctx.textAlign="center";
+    ctx.fillText(seat, xS(i), cH-P.b+13);
+  });
+
+  // Active highlight
+  if(sid===activeScen){
+    ctx.strokeStyle="rgba(255,255,255,0.3)"; ctx.lineWidth=1;
+    ctx.strokeRect(0,0,cW,cH);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// REFRESH
+// ═══════════════════════════════════════════════════════════════════════════════
+function refresh(){
+  document.querySelectorAll(".pill").forEach(p=>{
+    p.classList.toggle("active",p.dataset.sid===activeScen);
+  });
+  updateStats();
+  drawArea();
+  drawBar543();
+  SCENARIO_ORDER.forEach(sid=>drawSmall(sid));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════════════════════
+buildPills();
+buildStateBars();
+buildStateTable();
+buildSmallMultiples();
+refresh();
+window.addEventListener("resize",()=>{drawArea();drawBar543();SCENARIO_ORDER.forEach(sid=>drawSmall(sid));});
+</script>
+</body>
+</html>

@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lok Sabha · State-Wise Analysis · Historical & Projected</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05101d;--s1:#0b1d33;--s2:#0f2444;--border:#1a3a5a;
+  --saffron:#FF9933;--green:#0a8a0a;--hung:#7c3aed;
+  --amber:#f59e0b;--red:#e03030;--teal:#0ea5e9;
+  --text:#dde8f4;--dim:#4a6a88;--muted:#1e3550;
+  --mono:'JetBrains Mono',monospace;--sans:'Space Grotesk',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;min-height:100vh}
+
+.hdr{background:linear-gradient(160deg,#050f1c 0%,#0b1e38 60%,#061628 100%);
+  border-bottom:1px solid var(--border);padding:22px 24px 18px}
+.eye{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--saffron);margin-bottom:7px}
+h1{font-size:clamp(18px,3vw,30px);font-weight:800;letter-spacing:-0.5px;
+  color:#f0f7ff;line-height:1.1;margin-bottom:8px}
+.hdr p{color:var(--dim);font-size:11px;line-height:1.6;max-width:820px}
+.hdr-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.hpill{font-family:var(--mono);font-size:8px;color:var(--dim);
+  border:1px solid var(--border);border-radius:20px;padding:3px 10px}
+
+/* ── Nav ── */
+.nav{display:flex;gap:0;border-bottom:1px solid var(--border);
+  background:var(--s1);padding:0 20px;overflow-x:auto}
+.nb{padding:10px 18px;border:none;border-bottom:2px solid transparent;
+  background:transparent;color:var(--dim);font-family:var(--sans);
+  font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.nb.active{color:var(--saffron);border-bottom-color:var(--saffron)}
+
+/* ── Shell ── */
+.shell{max-width:1160px;margin:0 auto;padding:0 16px 48px}
+
+/* ── Section ── */
+.sec{font-family:var(--mono);font-size:9px;text-transform:uppercase;
+  letter-spacing:2.5px;color:var(--dim);margin:22px 0 12px;
+  display:flex;align-items:center;gap:10px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── Panel ── */
+.panel{display:none;padding-top:18px}.panel.active{display:block}
+
+/* ── Card ── */
+.card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card h3{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px}
+.csub{font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:12px;line-height:1.5}
+
+/* ── Grid ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}}
+
+/* ── Controls ── */
+.ctrl-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:14px}
+.csel{background:var(--s1);border:1px solid var(--border);border-radius:6px;
+  color:var(--text);font-family:var(--mono);font-size:10px;padding:5px 10px;cursor:pointer}
+.csel:focus{outline:none;border-color:var(--saffron)}
+.cbtn{background:transparent;border:1.5px solid var(--border);border-radius:6px;
+  color:var(--dim);font-family:var(--mono);font-size:10px;padding:5px 12px;
+  cursor:pointer;transition:all .15s}
+.cbtn.active,.cbtn:hover{border-color:var(--saffron);color:var(--saffron);background:rgba(255,153,51,.08)}
+.clabel{font-family:var(--mono);font-size:9px;color:var(--dim)}
+
+/* ── Heatmap ── */
+.hm-wrap{overflow-x:auto}
+.hm-grid{display:grid;font-family:var(--mono);font-size:8px}
+.hm-cell{display:flex;align-items:center;justify-content:center;
+  border-radius:2px;cursor:pointer;transition:filter .1s;position:relative}
+.hm-cell:hover{filter:brightness(1.4)!important}
+.hm-rlabel{color:var(--dim);text-align:right;padding-right:8px;
+  font-size:9px;display:flex;align-items:center;justify-content:flex-end;white-space:nowrap}
+.hm-clabel{color:var(--dim);text-align:center;font-size:8px;padding-bottom:3px}
+
+/* ── State table ── */
+.stbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:9px}
+.stbl th{color:var(--dim);padding:6px 8px;text-align:left;
+  border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap}
+.stbl td{padding:5px 8px;border-bottom:1px solid #0c1e30;vertical-align:middle}
+.stbl tr:hover td{background:#0d2035}
+.stbl .tright{text-align:right}
+.stbl .tcenter{text-align:center}
+
+/* ── Spark bars ── */
+.spark{display:flex;height:12px;border-radius:2px;overflow:hidden;width:60px}
+.spark-nda{background:var(--saffron)}
+.spark-india{background:var(--green)}
+.spark-oth{background:#334a60}
+
+/* ── Trend arrow ── */
+.up{color:#4ade80;font-weight:700}.dn{color:#f87171;font-weight:700}.flat{color:var(--dim)}
+
+/* ── Seat bar ── */
+.seat-bar{background:#0a1628;border-radius:3px;height:14px;overflow:hidden;position:relative;width:100%}
+.seat-bar-fill{height:100%;border-radius:3px;transition:width .4s}
+
+/* ── State detail panel ── */
+.detail-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.detail-overlay.show{display:flex}
+.detail-box{background:#0b1d33;border:1px solid var(--border);border-radius:12px;
+  padding:20px;max-width:640px;width:94%;max-height:80vh;overflow-y:auto}
+.detail-box h2{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.det-close{float:right;background:none;border:none;color:var(--dim);
+  font-size:20px;cursor:pointer;padding:0 4px}
+
+/* ── Scenario cards ── */
+.scen-card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.scen-card .sv{font-family:var(--mono);font-size:22px;font-weight:700;line-height:1}
+.scen-card .sl{font-family:var(--mono);font-size:8px;color:var(--dim);margin-bottom:4px}
+.scen-card .sn{font-family:var(--mono);font-size:8px;color:#2a4060;margin-top:3px}
+
+/* ── Progress bar ── */
+.pbar{background:#0a1628;border-radius:3px;height:6px;overflow:hidden;margin-top:4px}
+.pbar-f{height:100%;border-radius:3px;transition:width .5s}
+
+/* ── Legend ── */
+.leg{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.li{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.ld{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ── Disc ── */
+.disc{background:#120808;border:1px solid #7f1d1d;border-radius:8px;
+  padding:12px 16px;margin-top:20px;font-family:var(--mono);font-size:9px;color:#fca5a5;line-height:1.8}
+.disc b{color:#f87171}
+
+canvas{display:block;width:100%!important}
+.tooltip-box{position:fixed;pointer-events:none;z-index:200;background:#1e3050;
+  border:1px solid var(--border);border-radius:6px;padding:8px 12px;
+  font-family:var(--mono);font-size:9px;color:#cbd5e1;line-height:1.7;
+  display:none;max-width:220px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="eye">India · Lok Sabha · State-Wise Historical Analysis &amp; Seat Projection · 1999–2029</div>
+  <h1>State Wins, Losses &amp; Seat Reallocation<br>How Population Trends Reshape the Electoral Map</h1>
+  <p>36 states and UTs · 6 elections (1999–2024) · Population-proportional reallocation at 543–1,000 seats · 2029 trend projections · 3,000 Monte Carlo simulations per scenario</p>
+  <div class="hdr-pills">
+    <span class="hpill">Source: TCPD Lok Dhaba 1999–2019 + ECI 2024</span>
+    <span class="hpill">Population: Census 2011 + 2024 electoral rolls</span>
+    <span class="hpill">D1: Seat-share proxy — P(majority) upward-biased</span>
+    <span class="hpill">D2: Dirichlet conc=5 (empirically calibrated)</span>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nb active" data-tab="heatmap">Historical Heatmap</button>
+  <button class="nb" data-tab="realloc">Seat Reallocation</button>
+  <button class="nb" data-tab="trends">State Trends</button>
+  <button class="nb" data-tab="scenarios">Scenario Outcomes</button>
+</div>
+<div class="tooltip-box" id="tt"></div>
+<div class="detail-overlay" id="det-overlay">
+  <div class="detail-box">
+    <button class="det-close" onclick="document.getElementById('det-overlay').classList.remove('show')">✕</button>
+    <div id="det-content"></div>
+  </div>
+</div>
+
+<div class="shell">
+
+<!-- ══ TAB 1: HISTORICAL HEATMAP ══════════════════════════════════════════════ -->
+<div class="panel active" id="panel-heatmap">
+  <div class="sec">State-by-state NDA seat share across 6 elections (1999–2024)</div>
+  <div class="card" style="margin-bottom:14px">
+    <h3>NDA seat share heatmap — all 36 states × 6 elections</h3>
+    <div class="csub">Each cell = NDA seats ÷ total state seats that election. Darker saffron = stronger NDA performance. Click any cell or state name to see full detail.</div>
+    <div class="ctrl-bar">
+      <span class="clabel">Show:</span>
+      <button class="cbtn active" data-metric="nda_pct" onclick="setMetric('nda_pct',this)">NDA %</button>
+      <button class="cbtn" data-metric="india_pct" onclick="setMetric('india_pct',this)">INDIA %</button>
+      <button class="cbtn" data-metric="nda_raw" onclick="setMetric('nda_raw',this)">NDA seats</button>
+      <button class="cbtn" data-metric="swing" onclick="setMetric('swing',this)">Swing 1999→2024</button>
+      <span class="clabel" style="margin-left:8px">Sort by:</span>
+      <select class="csel" id="sort-sel" onchange="buildHeatmap()">
+        <option value="seats">Total seats 2024</option>
+        <option value="nda24">NDA 2024 seats</option>
+        <option value="nda_slope">NDA trend (recent)</option>
+        <option value="alpha">A–Z</option>
+      </select>
+    </div>
+    <div class="hm-wrap" id="hm-wrap"></div>
+    <div class="leg" style="margin-top:12px">
+      <div class="li"><div class="ld" style="background:rgba(255,153,51,0.15)"></div>Low (0–25%)</div>
+      <div class="li"><div class="ld" style="background:rgba(255,153,51,0.5)"></div>Mid (25–50%)</div>
+      <div class="li"><div class="ld" style="background:rgba(255,153,51,0.85)"></div>High (50–75%)</div>
+      <div class="li"><div class="ld" style="background:#FF9933"></div>Dominant (75–100%)</div>
+      <div class="li"><div class="ld" style="background:rgba(10,138,10,0.7)"></div>INDIA dominant</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>National NDA seat total — election by election</h3>
+      <div class="csub">Sum of NDA seats across all states. Quota = 272 (50%+1 of 543).</div>
+      <canvas id="natl-canvas" height="160"></canvas>
+    </div>
+    <div class="card">
+      <h3>Most swing-prone states (biggest NDA variation 1999–2024)</h3>
+      <div class="csub">States where NDA seat share swings most across elections — the ones that determine national outcomes.</div>
+      <div id="swing-table"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 2: SEAT REALLOCATION ═══════════════════════════════════════════════ -->
+<div class="panel" id="panel-realloc">
+  <div class="sec">Population-proportional seat reallocation · Hamilton/largest-remainder method · min 1 seat per state</div>
+
+  <div class="ctrl-bar">
+    <span class="clabel">Target House size:</span>
+    <button class="cbtn active" data-seats="543" onclick="setSeats(543,this)">543</button>
+    <button class="cbtn" data-seats="600" onclick="setSeats(600,this)">600</button>
+    <button class="cbtn" data-seats="650" onclick="setSeats(650,this)">650</button>
+    <button class="cbtn" data-seats="750" onclick="setSeats(750,this)">750</button>
+    <button class="cbtn" data-seats="850" onclick="setSeats(850,this)">850 ←Proposed</button>
+    <button class="cbtn" data-seats="1000" onclick="setSeats(1000,this)">1,000</button>
+  </div>
+
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card">
+      <h3>States gaining seats</h3>
+      <div class="csub" id="gain-sub">Change from frozen 543 to pop-proportional 543.</div>
+      <div id="gain-chart"></div>
+    </div>
+    <div class="card">
+      <h3>States losing seats</h3>
+      <div class="csub" id="lose-sub">States that are currently over-represented by population.</div>
+      <div id="lose-chart"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Full state-by-state seat comparison</h3>
+    <div class="csub">Current frozen seats (based on 1971 Census) vs population-proportional allocation at selected House size. Bloc column = 2024 NDA/INDIA split of current seats.</div>
+    <div style="overflow-x:auto;max-height:420px;overflow-y:auto">
+      <table class="stbl" id="realloc-table">
+        <thead><tr>
+          <th>State / UT</th>
+          <th class="tright">Current seats</th>
+          <th class="tright">Pop-prop seats</th>
+          <th class="tright">Change</th>
+          <th class="tright">NDA 2024</th>
+          <th class="tright">INDIA 2024</th>
+          <th>NDA bloc share</th>
+        </tr></thead>
+        <tbody id="realloc-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 3: STATE TRENDS ════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-trends">
+  <div class="sec">NDA vote-share trend by state · 1999–2024 actuals + 2029 linear projection</div>
+
+  <div class="ctrl-bar">
+    <span class="clabel">Filter:</span>
+    <button class="cbtn active" data-filter="all" onclick="setFilter('all',this)">All states</button>
+    <button class="cbtn" data-filter="gaining" onclick="setFilter('gaining',this)">NDA gaining</button>
+    <button class="cbtn" data-filter="losing" onclick="setFilter('losing',this)">NDA declining</button>
+    <button class="cbtn" data-filter="large" onclick="setFilter('large',this)">Large states (≥20 seats)</button>
+    <select class="csel" id="trend-sort" onchange="buildTrends()">
+      <option value="slope_desc">Fastest NDA gain</option>
+      <option value="slope_asc">Fastest NDA decline</option>
+      <option value="seats_desc">Most seats</option>
+      <option value="nda24_desc">NDA share 2024</option>
+    </select>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <h3>NDA seat-share trend by state (recent 3 elections) + 2029 projection</h3>
+    <div class="csub">Arrow = direction of NDA share trend. Bar = 2024 NDA share. Number = projected 2029 NDA share. Red = declining, green = gaining. Click any row for full 6-election history.</div>
+    <div style="overflow-x:auto">
+      <table class="stbl" id="trend-table">
+        <thead><tr>
+          <th>State</th>
+          <th class="tright">Seats 2024</th>
+          <th class="tright">NDA 2024</th>
+          <th class="tright">INDIA 2024</th>
+          <th class="tcenter">NDA trend</th>
+          <th class="tright">NDA 2029 proj.</th>
+          <th class="tright">INDIA 2029 proj.</th>
+          <th style="width:90px">NDA share bar</th>
+          <th class="tcenter">1999→2024</th>
+        </tr></thead>
+        <tbody id="trend-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>NDA gaining states (2014–2024 trend)</h3>
+      <div class="csub">States where NDA is building a stronger vote-share trend.</div>
+      <canvas id="gain-trend-canvas" height="180"></canvas>
+    </div>
+    <div class="card">
+      <h3>NDA declining states (2014–2024 trend)</h3>
+      <div class="csub">States where NDA is losing ground relative to 2014/2019 peak.</div>
+      <canvas id="lose-trend-canvas" height="180"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 4: SCENARIOS ════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-scenarios">
+  <div class="sec">Scenario outcomes · 3,000 Monte Carlo simulations per configuration · Dirichlet concentration = 5</div>
+
+  <div style="background:#0a1e18;border:1px solid #166534;border-radius:8px;padding:12px 16px;margin-bottom:14px;
+    font-family:var(--mono);font-size:9px;color:#86efac;line-height:1.7">
+    <b style="color:#4ade80">What these scenarios show:</b> Starting from 2024's actual state-level bloc shares (or 2029 trend projections), each scenario reallocates seats proportionally to 2024 electoral roll size, then simulates 3,000 elections. Because 2024 was a strong NDA majority, P(NDA) is high in all scenarios anchored to 2024 shares — the analytically interesting dimension is <b>how many NDA seats the reallocation produces</b> and <b>which states drive those gains</b>, not the win probability alone.
+  </div>
+
+  <div class="ctrl-bar">
+    <span class="clabel">Bloc shares from:</span>
+    <button class="cbtn active" data-era="2024" onclick="setEra('2024',this)">2024 actual</button>
+    <button class="cbtn" data-era="2029" onclick="setEra('2029',this)">2029 trend projection</button>
+  </div>
+
+  <div class="g3" id="scen-cards" style="margin-bottom:14px"></div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>Average NDA seat count vs House size</h3>
+      <div class="csub">Under 2024 or 2029 bloc shares. Both seat-count variants (frozen vs pop-proportional) shown.</div>
+      <canvas id="scen-line-canvas" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h3>State-level NDA seat change: frozen 543 → pop-prop 850</h3>
+      <div class="csub">Which states contribute the most additional NDA seats when seats are reallocated to match population? States sorted by NDA seat gain.</div>
+      <canvas id="state-gain-canvas" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3>Full scenario comparison table</h3>
+    <div class="csub">All 12 scenarios. NDA avg = expected NDA seat total across 3,000 simulations. Range = 10th–90th percentile.</div>
+    <div style="overflow-x:auto">
+      <table class="stbl" id="scen-full-table">
+        <thead><tr>
+          <th>Scenario</th><th class="tright">Seats</th><th class="tright">Quota</th>
+          <th class="tright">NDA avg</th><th class="tright">10–90%ile</th>
+          <th class="tright">P(NDA majority)</th><th class="tright">P(INDIA majority)</th><th class="tright">P(Hung)</th>
+        </tr></thead>
+        <tbody id="scen-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="disc">
+  <b>D1 · Seat-share proxy:</b> NDA vote shares derived from 2024 seat shares (~47% national mean), not real ECI vote shares (~37%). P(majority) numbers are upward-biased. Directional findings on reallocation effects are robust.<br>
+  <b>D2 · Concentration parameter:</b> Dirichlet conc=5 (empirically calibrated to real TCPD constituency-level variance ±21pp). Previous analyses used conc=18 which understated variance 1.8×.<br>
+  <b>D3 · 2029 projections:</b> Linear trend on 1999–2024. Indian politics has never followed a linear trend for more than 2–3 elections. Treat as illustrative direction, not forecast.<br>
+  <b>D4 · Historical data 1999–2019:</b> TCPD Lok Dhaba GA file; 2024 from ECI declared results. Pre-1999 state-level breakdown not available in TCPD GA export.
+</div>
+
+</div><!-- /shell -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════════════
+const SR=[{"state":"Andhra Pradesh","k":"Andhra_Pradesh","s24":25,"n24":21,"i24":0,"p543":22,"p650":27,"p750":31,"p850":35,"p1000":41,"nda24":0.84,"ind24":0.0,"nda29":0.95,"ind29":0.02,"nsl":0.461,"isl":-0.124,"h":[{"y":1999,"n":36,"i":5,"o":1,"t":42},{"y":2004,"n":5,"i":31,"o":6,"t":42},{"y":2009,"n":6,"i":33,"o":3,"t":42},{"y":2014,"n":19,"i":2,"o":21,"t":42},{"y":2019,"n":3,"i":0,"o":22,"t":25},{"y":2024,"n":21,"i":0,"o":4,"t":25}]},{"state":"Arunachal Pradesh","k":"Arunachal_Pradesh","s24":2,"n24":2,"i24":0,"p543":1,"p650":1,"p750":1,"p850":2,"p1000":2,"nda24":0.98,"ind24":0.0,"nda29":0.95,"ind29":0.02,"nsl":0.539,"isl":-0.447,"h":[{"y":1999,"n":0,"i":2,"o":0,"t":2},{"y":2004,"n":2,"i":0,"o":0,"t":2},{"y":2009,"n":0,"i":2,"o":0,"t":2},{"y":2014,"n":1,"i":1,"o":0,"t":2},{"y":2019,"n":2,"i":0,"o":0,"t":2},{"y":2024,"n":2,"i":0,"o":0,"t":2}]},{"state":"Assam","k":"Assam","s24":14,"n24":10,"i24":3,"p543":14,"p650":17,"p750":19,"p850":22,"p1000":26,"nda24":0.693,"ind24":0.249,"nda29":0.76,"ind29":0.18,"nsl":0.378,"isl":-0.341,"h":[{"y":1999,"n":5,"i":9,"o":0,"t":14},{"y":2004,"n":0,"i":14,"o":0,"t":14},{"y":2009,"n":4,"i":7,"o":3,"t":14},{"y":2014,"n":7,"i":3,"o":4,"t":14},{"y":2019,"n":9,"i":3,"o":2,"t":14},{"y":2024,"n":10,"i":3,"o":1,"t":14}]},{"state":"Bihar","k":"Bihar","s24":40,"n24":30,"i24":9,"p543":43,"p650":51,"p750":59,"p850":67,"p1000":79,"nda24":0.748,"ind24":0.231,"nda29":0.87,"ind29":0.09,"nsl":0.287,"isl":-0.197,"h":[{"y":1999,"n":41,"i":12,"o":1,"t":54},{"y":2004,"n":11,"i":25,"o":4,"t":40},{"y":2009,"n":32,"i":6,"o":2,"t":40},{"y":2014,"n":24,"i":7,"o":9,"t":40},{"y":2019,"n":33,"i":1,"o":6,"t":40},{"y":2024,"n":30,"i":9,"o":1,"t":40}]},{"state":"Chandigarh","k":"Chandigarh","s24":1,"n24":0,"i24":1,"p543":1,"p650":1,"p750":1,"p850":1,"p1000":1,"nda24":0.02,"ind24":0.96,"nda29":0.02,"ind29":0.95,"nsl":-0.426,"isl":0.42,"h":[{"y":2024,"n":0,"i":1,"o":0,"t":1}]},{"state":"Chhattisgarh","k":"Chhattisgarh","s24":11,"n24":10,"i24":1,"p543":11,"p650":13,"p750":15,"p850":18,"p1000":21,"nda24":0.884,"ind24":0.097,"nda29":0.95,"ind29":0.02,"nsl":0.412,"isl":-0.314,"h":[{"y":2004,"n":5,"i":6,"o":0,"t":11},{"y":2009,"n":8,"i":3,"o":0,"t":11},{"y":2014,"n":10,"i":1,"o":0,"t":11},{"y":2019,"n":9,"i":2,"o":0,"t":11},{"y":2024,"n":10,"i":1,"o":0,"t":11}]},{"state":"Dadra and Nagar Haveli and Daman and Diu","k":"Dadra_and_Nagar_Haveli_and_Daman_and_Diu","s24":2,"n24":2,"i24":0,"p543":1,"p650":1,"p750":1,"p850":1,"p1000":1,"nda24":0.436,"ind24":0.02,"nda29":0.39,"ind29":0.02,"nsl":-0.066,"isl":0.037,"h":[{"y":2024,"n":2,"i":0,"o":0,"t":2}]},{"state":"Delhi","k":"Delhi","s24":7,"n24":7,"i24":0,"p543":8,"p650":10,"p750":12,"p850":13,"p1000":15,"nda24":0.98,"ind24":0.02,"nda29":0.95,"ind29":0.02,"nsl":0.056,"isl":-0.051,"h":[{"y":1999,"n":7,"i":0,"o":0,"t":7},{"y":2004,"n":0,"i":7,"o":0,"t":7},{"y":2009,"n":0,"i":7,"o":0,"t":7},{"y":2014,"n":7,"i":0,"o":0,"t":7},{"y":2019,"n":7,"i":0,"o":0,"t":7},{"y":2024,"n":7,"i":0,"o":0,"t":7}]},{"state":"Goa","k":"Goa","s24":2,"n24":1,"i24":1,"p543":1,"p650":1,"p750":1,"p850":1,"p1000":1,"nda24":0.5,"ind24":0.5,"nda29":0.46,"ind29":0.53,"nsl":-0.041,"isl":0.042,"h":[{"y":1999,"n":1,"i":0,"o":1,"t":2},{"y":2004,"n":0,"i":2,"o":0,"t":2},{"y":2009,"n":1,"i":1,"o":0,"t":2},{"y":2014,"n":2,"i":0,"o":0,"t":2},{"y":2019,"n":2,"i":0,"o":0,"t":2},{"y":2024,"n":1,"i":1,"o":0,"t":2}]},{"state":"Gujarat","k":"Gujarat","s24":26,"n24":25,"i24":1,"p543":27,"p650":32,"p750":37,"p850":43,"p1000":50,"nda24":0.941,"ind24":0.049,"nda29":0.95,"ind29":0.02,"nsl":0.356,"isl":-0.254,"h":[{"y":1999,"n":20,"i":6,"o":0,"t":26},{"y":2004,"n":14,"i":12,"o":0,"t":26},{"y":2009,"n":14,"i":11,"o":1,"t":26},{"y":2014,"n":26,"i":0,"o":0,"t":26},{"y":2019,"n":26,"i":0,"o":0,"t":26},{"y":2024,"n":25,"i":1,"o":0,"t":26}]},{"state":"Haryana","k":"Haryana","s24":10,"n24":5,"i24":5,"p543":9,"p650":11,"p750":12,"p850":14,"p1000":17,"nda24":0.5,"ind24":0.5,"nda29":0.46,"ind29":0.53,"nsl":-0.027,"isl":0.016,"h":[{"y":1999,"n":9,"i":1,"o":0,"t":10},{"y":2004,"n":0,"i":9,"o":1,"t":10},{"y":2009,"n":0,"i":9,"o":1,"t":10},{"y":2014,"n":7,"i":1,"o":2,"t":10},{"y":2019,"n":10,"i":0,"o":0,"t":10},{"y":2024,"n":5,"i":5,"o":0,"t":10}]},{"state":"Himachal Pradesh","k":"Himachal_Pradesh","s24":4,"n24":4,"i24":0,"p543":3,"p650":4,"p750":4,"p850":5,"p1000":6,"nda24":0.98,"ind24":0.02,"nda29":0.95,"ind29":0.02,"nsl":0.076,"isl":-0.073,"h":[{"y":1999,"n":3,"i":1,"o":0,"t":4},{"y":2004,"n":1,"i":3,"o":0,"t":4},{"y":2009,"n":1,"i":3,"o":0,"t":4},{"y":2014,"n":4,"i":0,"o":0,"t":4},{"y":2019,"n":4,"i":0,"o":0,"t":4},{"y":2024,"n":4,"i":0,"o":0,"t":4}]},{"state":"Jammu & Kashmir","k":"Jammu_and_Kashmir","s24":5,"n24":2,"i24":2,"p543":4,"p650":5,"p750":6,"p850":6,"p1000":7,"nda24":0.4,"ind24":0.4,"nda29":0.36,"ind29":0.43,"nsl":-0.036,"isl":0.031,"h":[{"y":2024,"n":2,"i":2,"o":1,"t":5}]},{"state":"Jharkhand","k":"Jharkhand","s24":14,"n24":8,"i24":5,"p543":13,"p650":16,"p750":18,"p850":21,"p1000":24,"nda24":0.571,"ind24":0.357,"nda29":0.54,"ind29":0.39,"nsl":-0.028,"isl":0.021,"h":[{"y":2004,"n":7,"i":5,"o":2,"t":14},{"y":2009,"n":8,"i":3,"o":3,"t":14},{"y":2014,"n":12,"i":2,"o":0,"t":14},{"y":2019,"n":12,"i":1,"o":1,"t":14},{"y":2024,"n":8,"i":5,"o":1,"t":14}]},{"state":"Karnataka","k":"Karnataka","s24":28,"n24":19,"i24":9,"p543":29,"p650":35,"p750":40,"p850":45,"p1000":53,"nda24":0.655,"ind24":0.329,"nda29":0.76,"ind29":0.22,"nsl":0.245,"isl":-0.198,"h":[{"y":1999,"n":10,"i":18,"o":0,"t":28},{"y":2004,"n":20,"i":8,"o":0,"t":28},{"y":2009,"n":21,"i":7,"o":0,"t":28},{"y":2014,"n":19,"i":9,"o":0,"t":28},{"y":2019,"n":26,"i":2,"o":0,"t":28},{"y":2024,"n":19,"i":9,"o":0,"t":28}]},{"state":"Kerala","k":"Kerala","s24":20,"n24":1,"i24":18,"p543":17,"p650":21,"p750":24,"p850":27,"p1000":32,"nda24":0.05,"ind24":0.9,"nda29":0.04,"ind29":0.93,"nsl":-0.055,"isl":0.047,"h":[{"y":1999,"n":0,"i":19,"o":1,"t":20},{"y":2004,"n":0,"i":18,"o":2,"t":20},{"y":2009,"n":1,"i":18,"o":1,"t":20},{"y":2014,"n":0,"i":20,"o":0,"t":20},{"y":2019,"n":1,"i":19,"o":0,"t":20},{"y":2024,"n":1,"i":18,"o":1,"t":20}]},{"state":"Ladakh","k":"Ladakh","s24":1,"n24":0,"i24":0,"p543":1,"p650":1,"p750":1,"p850":1,"p1000":1,"nda24":0.5,"ind24":0.3,"nda29":0.5,"ind29":0.3,"nsl":0.0,"isl":0.0,"h":[]},{"state":"Lakshadweep","k":"Lakshadweep","s24":1,"n24":0,"i24":1,"p543":1,"p650":1,"p750":1,"p850":1,"p1000":1,"nda24":0.02,"ind24":0.96,"nda29":0.02,"ind29":0.96,"nsl":0.0,"isl":0.0,"h":[{"y":1999,"n":0,"i":1,"o":0,"t":1}]},{"state":"Madhya Pradesh","k":"Madhya_Pradesh","s24":29,"n24":29,"i24":0,"p543":31,"p650":37,"p750":43,"p850":49,"p1000":58,"nda24":0.98,"ind24":0.02,"nda29":0.95,"ind29":0.02,"nsl":0.452,"isl":-0.435,"h":[{"y":1999,"n":28,"i":1,"o":0,"t":29},{"y":2004,"n":25,"i":4,"o":0,"t":29},{"y":2009,"n":16,"i":12,"o":1,"t":29},{"y":2014,"n":27,"i":2,"o":0,"t":29},{"y":2019,"n":28,"i":1,"o":0,"t":29},{"y":2024,"n":29,"i":0,"o":0,"t":29}]},{"state":"Maharashtra","k":"Maharashtra","s24":48,"n24":17,"i24":30,"p543":52,"p650":62,"p750":72,"p850":82,"p1000":96,"nda24":0.354,"ind24":0.623,"nda29":0.32,"ind29":0.66,"nsl":-0.13,"isl":0.129,"h":[{"y":1999,"n":29,"i":16,"o":3,"t":48},{"y":2004,"n":25,"i":22,"o":1,"t":48},{"y":2009,"n":20,"i":25,"o":3,"t":48},{"y":2014,"n":41,"i":6,"o":1,"t":48},{"y":2019,"n":41,"i":5,"o":2,"t":48},{"y":2024,"n":17,"i":30,"o":1,"t":48}]},{"state":"Manipur","k":"Manipur","s24":2,"n24":2,"i24":0,"p543":1,"p650":1,"p750":1,"p850":2,"p1000":2,"nda24":0.5,"ind24":0.26,"nda29":0.35,"ind29":0.39,"nsl":-0.121,"isl":0.108,"h":[{"y":2009,"n":0,"i":2,"o":0,"t":2},{"y":2014,"n":2,"i":0,"o":0,"t":2},{"y":2019,"n":1,"i":1,"o":0,"t":2},{"y":2024,"n":2,"i":0,"o":0,"t":2}]},{"state":"Meghalaya","k":"Meghalaya","s24":2,"n24":0,"i24":2,"p543":1,"p650":1,"p750":2,"p850":2,"p1000":2,"nda24":0.02,"ind24":0.96,"nda29":0.02,"ind29":0.95,"nsl":-0.092,"isl":0.087,"h":[{"y":1999,"n":0,"i":1,"o":1,"t":2},{"y":2004,"n":0,"i":2,"o":0,"t":2},{"y":2009,"n":0,"i":2,"o":0,"t":2},{"y":2014,"n":0,"i":2,"o":0,"t":2},{"y":2019,"n":0,"i":2,"o":0,"t":2},{"y":2024,"n":0,"i":2,"o":0,"t":2}]},{"state":"Mizoram","k":"Mizoram","s24":1,"n24":0,"i24":0,"p543":1,"p650":1,"p750":1,"p850":1,"p1000":1,"nda24":0.02,"ind24":0.02,"nda29":0.02,"ind29":0.02,"nsl":0.0,"isl":0.0,"h":[]},{"state":"Nagaland","k":"Nagaland","s24":1,"n24":0,"i24":1,"p543":1,"p650":1,"p750":1,"p850":1,"p1000":1,"nda24":0.02,"ind24":0.96,"nda29":0.02,"ind29":0.96,"nsl":0.0,"isl":0.0,"h":[]},{"state":"Odisha","k":"Odisha","s24":21,"n24":20,"i24":1,"p543":19,"p650":23,"p750":26,"p850":30,"p1000":35,"nda24":0.93,"ind24":0.07,"nda29":0.95,"ind29":0.02,"nsl":0.734,"isl":-0.624,"h":[{"y":1999,"n":0,"i":5,"o":16,"t":21},{"y":2004,"n":0,"i":2,"o":19,"t":21},{"y":2009,"n":1,"i":6,"o":14,"t":21},{"y":2014,"n":1,"i":1,"o":19,"t":21},{"y":2019,"n":8,"i":1,"o":12,"t":21},{"y":2024,"n":20,"i":1,"o":0,"t":21}]},{"state":"Punjab","k":"Punjab","s24":13,"n24":0,"i24":8,"p543":12,"p650":14,"p750":16,"p850":18,"p1000":21,"nda24":0.02,"ind24":0.599,"nda29":0.02,"ind29":0.57,"nsl":-0.089,"isl":0.076,"h":[{"y":1999,"n":0,"i":8,"o":5,"t":13},{"y":2004,"n":0,"i":11,"o":2,"t":13},{"y":2009,"n":1,"i":8,"o":4,"t":13},{"y":2014,"n":2,"i":3,"o":8,"t":13},{"y":2019,"n":2,"i":8,"o":3,"t":13},{"y":2024,"n":0,"i":8,"o":5,"t":13}]},{"state":"Rajasthan","k":"Rajasthan","s24":25,"n24":14,"i24":11,"p543":30,"p650":36,"p750":41,"p850":47,"p1000":55,"nda24":0.561,"ind24":0.436,"nda29":0.56,"ind29":0.44,"nsl":0.003,"isl":-0.007,"h":[{"y":1999,"n":16,"i":9,"o":0,"t":25},{"y":2004,"n":21,"i":4,"o":0,"t":25},{"y":2009,"n":4,"i":20,"o":1,"t":25},{"y":2014,"n":25,"i":0,"o":0,"t":25},{"y":2019,"n":24,"i":0,"o":1,"t":25},{"y":2024,"n":14,"i":11,"o":0,"t":25}]},{"state":"Sikkim","k":"Sikkim","s24":1,"n24":1,"i24":0,"p543":1,"p650":1,"p750":1,"p850":1,"p1000":1,"nda24":0.98,"ind24":0.02,"nda29":0.95,"ind29":0.02,"nsl":0.0,"isl":0.0,"h":[]},{"state":"Tamil Nadu","k":"Tamil_Nadu","s24":39,"n24":0,"i24":39,"p543":35,"p650":42,"p750":48,"p850":54,"p1000":64,"nda24":0.02,"ind24":0.98,"nda29":0.02,"ind29":0.95,"nsl":-0.055,"isl":0.045,"h":[{"y":1999,"n":4,"i":15,"o":20,"t":39},{"y":2004,"n":0,"i":30,"o":9,"t":39},{"y":2009,"n":0,"i":28,"o":11,"t":39},{"y":2014,"n":1,"i":0,"o":38,"t":39},{"y":2019,"n":0,"i":33,"o":5,"t":38},{"y":2024,"n":0,"i":39,"o":0,"t":39}]},{"state":"Telangana","k":"Telangana","s24":17,"n24":8,"i24":8,"p543":16,"p650":19,"p750":22,"p850":25,"p1000":30,"nda24":0.471,"ind24":0.471,"nda29":0.43,"ind29":0.51,"nsl":-0.038,"isl":0.034,"h":[{"y":2014,"n":1,"i":2,"o":14,"t":17},{"y":2019,"n":4,"i":3,"o":10,"t":17},{"y":2024,"n":8,"i":8,"o":1,"t":17}]},{"state":"Tripura","k":"Tripura","s24":2,"n24":2,"i24":0,"p543":1,"p650":2,"p750":2,"p850":2,"p1000":2,"nda24":0.98,"ind24":0.02,"nda29":0.95,"ind29":0.02,"nsl":0.564,"isl":-0.495,"h":[{"y":1999,"n":0,"i":2,"o":0,"t":2},{"y":2004,"n":0,"i":2,"o":0,"t":2},{"y":2009,"n":0,"i":2,"o":0,"t":2},{"y":2014,"n":0,"i":2,"o":0,"t":2},{"y":2019,"n":2,"i":0,"o":0,"t":2},{"y":2024,"n":2,"i":0,"o":0,"t":2}]},{"state":"Uttar Pradesh","k":"Uttar_Pradesh","s24":80,"n24":36,"i24":43,"p543":86,"p650":103,"p750":119,"p850":134,"p1000":158,"nda24":0.45,"ind24":0.538,"nda29":0.46,"ind29":0.53,"nsl":0.023,"isl":-0.025,"h":[{"y":1999,"n":31,"i":36,"o":18,"t":85},{"y":2004,"n":14,"i":44,"o":22,"t":80},{"y":2009,"n":15,"i":43,"o":22,"t":80},{"y":2014,"n":71,"i":7,"o":2,"t":80},{"y":2019,"n":62,"i":6,"o":12,"t":80},{"y":2024,"n":36,"i":43,"o":1,"t":80}]},{"state":"Uttarakhand","k":"Uttarakhand","s24":5,"n24":5,"i24":0,"p543":4,"p650":5,"p750":5,"p850":6,"p1000":7,"nda24":0.98,"ind24":0.02,"nda29":0.95,"ind29":0.02,"nsl":0.188,"isl":-0.157,"h":[{"y":2004,"n":1,"i":3,"o":1,"t":5},{"y":2009,"n":0,"i":5,"o":0,"t":5},{"y":2014,"n":5,"i":0,"o":0,"t":5},{"y":2019,"n":5,"i":0,"o":0,"t":5},{"y":2024,"n":5,"i":0,"o":0,"t":5}]},{"state":"West Bengal","k":"West_Bengal","s24":42,"n24":12,"i24":29,"p543":41,"p650":49,"p750":57,"p850":64,"p1000":76,"nda24":0.286,"ind24":0.69,"nda29":0.34,"ind29":0.64,"nsl":0.115,"isl":-0.107,"h":[{"y":1999,"n":2,"i":35,"o":5,"t":42},{"y":2004,"n":0,"i":36,"o":6,"t":42},{"y":2009,"n":1,"i":36,"o":5,"t":42},{"y":2014,"n":2,"i":40,"o":0,"t":42},{"y":2019,"n":18,"i":24,"o":0,"t":42},{"y":2024,"n":12,"i":29,"o":1,"t":42}]}];
+
+const SO=[{"scenario":"2024 bloc shares \u2014 current frozen seats (543)","seat_col":"LS_Seats_2024","total_seats":543,"quota":272,"p_nda":0.998,"p_india":0.0,"p_hung":0.002,"avg_nda_seats":296.7,"avg_india_seats":224.5,"p10_nda":287,"p90_nda":307,"p10_india":216,"p90_india":233},{"scenario":"2024 bloc shares \u2014 pop-proportional 543 seats","seat_col":"Seats_pop_543","total_seats":543,"quota":272,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":300.8,"avg_india_seats":220.2,"p10_nda":290,"p90_nda":311,"p10_india":211,"p90_india":229},{"scenario":"2024 bloc shares \u2014 pop-proportional 650 seats","seat_col":"Seats_pop_650","total_seats":650,"quota":326,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":362.4,"avg_india_seats":261.6,"p10_nda":351,"p90_nda":374,"p10_india":251,"p90_india":272},{"scenario":"2024 bloc shares \u2014 pop-proportional 750 seats","seat_col":"Seats_pop_750","total_seats":750,"quota":376,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":418.8,"avg_india_seats":304.3,"p10_nda":406,"p90_nda":431,"p10_india":293,"p90_india":315},{"scenario":"2024 bloc shares \u2014 pop-proportional 850 seats","seat_col":"Seats_pop_850","total_seats":850,"quota":426,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":474.4,"avg_india_seats":345.3,"p10_nda":461,"p90_nda":487,"p10_india":333,"p90_india":358},{"scenario":"2024 bloc shares \u2014 pop-proportional 1000 seats","seat_col":"Seats_pop_1000","total_seats":1000,"quota":501,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":559.7,"avg_india_seats":406.7,"p10_nda":545,"p90_nda":574,"p10_india":393,"p90_india":420},{"scenario":"2029 trend projection \u2014 current frozen seats (543)","seat_col":"LS_Seats_2024","total_seats":543,"quota":272,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":304.4,"avg_india_seats":214.9,"p10_nda":294,"p90_nda":315,"p10_india":205,"p90_india":224},{"scenario":"2029 trend projection \u2014 pop-proportional 543","seat_col":"Seats_pop_543","total_seats":543,"quota":272,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":308.6,"avg_india_seats":211.0,"p10_nda":298,"p90_nda":318,"p10_india":201,"p90_india":220},{"scenario":"2029 trend projection \u2014 pop-proportional 650","seat_col":"Seats_pop_650","total_seats":650,"quota":326,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":371.4,"avg_india_seats":251.5,"p10_nda":360,"p90_nda":383,"p10_india":241,"p90_india":262},{"scenario":"2029 trend projection \u2014 pop-proportional 750","seat_col":"Seats_pop_750","total_seats":750,"quota":376,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":428.8,"avg_india_seats":291.5,"p10_nda":417,"p90_nda":440,"p10_india":280,"p90_india":303},{"scenario":"2029 trend projection \u2014 pop-proportional 850","seat_col":"Seats_pop_850","total_seats":850,"quota":426,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":486.2,"avg_india_seats":330.5,"p10_nda":473,"p90_nda":499,"p10_india":318,"p90_india":343},{"scenario":"2029 trend projection \u2014 pop-proportional 1000","seat_col":"Seats_pop_1000","total_seats":1000,"quota":501,"p_nda":1.0,"p_india":0.0,"p_hung":0.0,"avg_nda_seats":573.6,"avg_india_seats":390.7,"p10_nda":559,"p90_nda":587,"p10_india":377,"p90_india":404}];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+const YEARS = [1999,2004,2009,2014,2019,2024];
+let hmMetric = 'nda_pct';
+let seatTarget = 543;
+let trendFilter = 'all';
+let scenEra = '2024';
+
+const hexA = (h,a) => {
+  const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+};
+const pct = (v,d=1) => (v*100).toFixed(d)+'%';
+const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════════════════════
+document.querySelectorAll('.nb').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.nb').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById('panel-'+b.dataset.tab).classList.add('active');
+}));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOLTIP
+// ═══════════════════════════════════════════════════════════════════════════
+const tt = document.getElementById('tt');
+function showTT(e, html) {
+  tt.innerHTML = html; tt.style.display = 'block';
+  tt.style.left = Math.min(e.clientX+12, window.innerWidth-230)+'px';
+  tt.style.top  = (e.clientY+12)+'px';
+}
+document.addEventListener('mousemove', e => {
+  if(tt.style.display==='block') {
+    tt.style.left = Math.min(e.clientX+12,window.innerWidth-230)+'px';
+    tt.style.top  = (e.clientY+12)+'px';
+  }
+});
+document.addEventListener('mouseout', () => tt.style.display='none');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB 1: HEATMAP
+// ═══════════════════════════════════════════════════════════════════════════
+function setMetric(m, btn) {
+  hmMetric = m;
+  document.querySelectorAll('[data-metric]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildHeatmap();
+}
+
+function getSortedStates() {
+  const sel = document.getElementById('sort-sel')?.value || 'seats';
+  return [...SR].sort((a,b) => {
+    if(sel==='seats')     return b.s24-a.s24;
+    if(sel==='nda24')     return b.n24-a.n24;
+    if(sel==='nda_slope') return b.nsl-a.nsl;
+    return a.state.localeCompare(b.state);
+  });
+}
+
+function getCellValue(state, year) {
+  const h = state.h.find(x=>x.y===year);
+  if(!h) return null;
+  if(hmMetric==='nda_pct')   return h.t>0 ? h.n/h.t : 0;
+  if(hmMetric==='india_pct') return h.t>0 ? h.i/h.t : 0;
+  if(hmMetric==='nda_raw')   return h.n;
+  if(hmMetric==='swing') {
+    const h0 = state.h.find(x=>x.y===1999);
+    const h1 = state.h.find(x=>x.y===2024) || state.h[state.h.length-1];
+    if(!h0||!h1) return null;
+    return (h1.n/h1.t) - (h0.n/h0.t);
+  }
+  return null;
+}
+
+function cellBg(val, metric) {
+  if(val===null) return '#0a1628';
+  if(metric==='india_pct') {
+    const a = clamp(val, 0, 1);
+    return `rgba(10,138,10,${a*0.9+0.05})`;
+  }
+  if(metric==='swing') {
+    if(val>0) return `rgba(255,153,51,${clamp(val*2,0,1)*0.9})`;
+    return `rgba(10,138,10,${clamp(-val*2,0,1)*0.7})`;
+  }
+  if(metric==='nda_raw') {
+    const maxS = Math.max(...SR.map(s=>{const h=s.h.find(x=>x.y===1999)||{n:0};return h.n;}), 80);
+    return `rgba(255,153,51,${clamp(val/maxS,0,1)*0.9+0.05})`;
+  }
+  const a = clamp(val, 0, 1);
+  return `rgba(255,153,51,${a*0.88+0.04})`;
+}
+
+function buildHeatmap() {
+  const states = getSortedStates();
+  const cellW = Math.max(32, Math.floor(Math.min(window.innerWidth-280, 750)/6));
+  const rowH  = 22;
+
+  let html = `<div class="hm-grid" style="display:grid;grid-template-columns:160px repeat(6,${cellW}px);gap:1px">`;
+  // Header
+  html += `<div class="hm-rlabel" style="height:24px;font-weight:700;font-size:9px">State</div>`;
+  YEARS.forEach(y => {
+    html += `<div class="hm-clabel" style="height:24px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:3px">${y}</div>`;
+  });
+
+  states.forEach(s => {
+    html += `<div class="hm-rlabel" style="height:${rowH}px;cursor:pointer;font-size:9px"
+      onclick="showDetail('${s.k}')">${s.state}</div>`;
+    YEARS.forEach(y => {
+      const val = getCellValue(s, y);
+      const bg  = cellBg(val, hmMetric);
+      const label = val===null ? '' :
+        hmMetric==='nda_raw' ? val :
+        hmMetric==='swing' ? (val>=0?'+':'')+Math.round(val*100) :
+        Math.round(val*100);
+      const textCol = val!==null && val>0.45 ? '#fff' : '#ffffff88';
+      html += `<div class="hm-cell" style="height:${rowH}px;background:${bg};color:${textCol};font-size:8px"
+        onmouseenter="showTT(event,'<b>${s.state}</b> ${y}<br>NDA: ${val!==null?(hmMetric==='nda_raw'?val:Math.round(val*100)+'%'):'N/A'}')"
+        onmouseleave="tt.style.display=\\'none\\'"
+        onclick="showDetail('${s.k}')">${label}</div>`;
+    });
+  });
+  html += '</div>';
+  document.getElementById('hm-wrap').innerHTML = html;
+  buildNatlChart();
+  buildSwingTable();
+}
+
+function buildNatlChart() {
+  const canvas = document.getElementById('natl-canvas');
+  if(!canvas) return;
+  const W = canvas.parentElement.clientWidth-32;
+  canvas.width=W*2; canvas.height=320; canvas.style.height='160px';
+  const ctx = canvas.getContext('2d'); ctx.scale(2,2);
+  const cW=W, cH=160, P={t:16,r:12,b:28,l:44};
+  const iW=cW-P.l-P.r, iH=cH-P.t-P.b;
+  ctx.fillStyle='#0f2444'; ctx.fillRect(0,0,cW,cH);
+
+  const totals = YEARS.map(y => {
+    let nda=0, india=0, total=0;
+    SR.forEach(s => { const h=s.h.find(x=>x.y===y); if(h){nda+=h.n;india+=h.i;total+=h.t;} });
+    return {y,nda,india,total};
+  });
+
+  const maxN = Math.max(...totals.map(t=>Math.max(t.nda,t.india)));
+  const xS=(i)=>P.l+(i/(YEARS.length-1))*iW;
+  const yS=(v)=>P.t+(1-v/maxN)*iH;
+
+  // Grid & quota line
+  [0,100,200,272,300,400].forEach(v => {
+    if(v>maxN) return;
+    const y=yS(v);
+    ctx.beginPath(); ctx.moveTo(P.l,y); ctx.lineTo(cW-P.r,y);
+    ctx.strokeStyle=v===272?'#f59e0baa':'#0d2035';
+    ctx.lineWidth=v===272?1.5:0.5; ctx.stroke();
+    ctx.fillStyle=v===272?'#f59e0b':'#334a60';
+    ctx.font='7px JetBrains Mono'; ctx.textAlign='right';
+    ctx.fillText(v===272?'272 (quota)':v, P.l-3, y+3);
+  });
+
+  // NDA area
+  ctx.beginPath();
+  totals.forEach((t,i) => i===0?ctx.moveTo(xS(i),yS(t.nda)):ctx.lineTo(xS(i),yS(t.nda)));
+  totals.slice().reverse().forEach((t,i,arr)=>ctx.lineTo(xS(arr.length-1-i),P.t+iH));
+  ctx.closePath(); ctx.fillStyle='rgba(255,153,51,0.35)'; ctx.fill();
+  ctx.beginPath();
+  totals.forEach((t,i) => i===0?ctx.moveTo(xS(i),yS(t.nda)):ctx.lineTo(xS(i),yS(t.nda)));
+  ctx.strokeStyle='#FF9933'; ctx.lineWidth=2; ctx.stroke();
+
+  // INDIA line
+  ctx.beginPath();
+  totals.forEach((t,i) => i===0?ctx.moveTo(xS(i),yS(t.india)):ctx.lineTo(xS(i),yS(t.india)));
+  ctx.strokeStyle='#0a8a0a'; ctx.lineWidth=2; ctx.stroke();
+
+  // Dots + labels
+  totals.forEach((t,i) => {
+    [['#FF9933',t.nda],['#0a8a0a',t.india]].forEach(([c,v]) => {
+      ctx.beginPath(); ctx.arc(xS(i),yS(v),3.5,0,Math.PI*2);
+      ctx.fillStyle=c; ctx.fill();
+    });
+    ctx.fillStyle='#64748b'; ctx.font='8px JetBrains Mono'; ctx.textAlign='center';
+    ctx.fillText(t.y, xS(i), cH-P.b+14);
+  });
+
+  // Legend
+  [['#FF9933','NDA'],['#0a8a0a','INDIA']].forEach(([c,l],i) => {
+    ctx.beginPath(); ctx.moveTo(P.l+i*60,cH-4); ctx.lineTo(P.l+i*60+14,cH-4);
+    ctx.strokeStyle=c; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#64748b'; ctx.font='8px JetBrains Mono'; ctx.textAlign='left';
+    ctx.fillText(l, P.l+i*60+16, cH-1);
+  });
+}
+
+function buildSwingTable() {
+  const swingData = SR.map(s => {
+    const h0 = s.h.find(x=>x.y===1999);
+    const h1 = s.h.find(x=>x.y===2024) || s.h[s.h.length-1];
+    if(!h0||!h1||h0.t===0||h1.t===0) return null;
+    const swing = (h1.n/h1.t)-(h0.n/h0.t);
+    const std = s.h.length>1 ? stdDev(s.h.map(h=>h.t>0?h.n/h.t:0)) : 0;
+    return {...s, swing, std};
+  }).filter(Boolean).sort((a,b)=>b.std-a.std).slice(0,12);
+
+  const html = swingData.map(s => {
+    const arr = s.swing>0.05?'▲':s.swing<-0.05?'▼':'→';
+    const cls = s.swing>0.05?'up':s.swing<-0.05?'dn':'flat';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #0c1e30">
+      <div style="width:130px;font-family:var(--mono);font-size:9px;color:var(--text)">${s.state}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim)">${s.s24}S</div>
+      <div style="flex:1;background:#0a1628;border-radius:2px;height:10px;overflow:hidden">
+        <div style="height:100%;background:rgba(255,153,51,0.6);width:${Math.round(s.std*200)}%"></div>
+      </div>
+      <div class="${cls}" style="font-family:var(--mono);font-size:9px;width:36px;text-align:right">${arr}${Math.round(Math.abs(s.swing)*100)}pp</div>
+    </div>`;
+  }).join('');
+  document.getElementById('swing-table').innerHTML = html;
+}
+
+function stdDev(arr) {
+  const m = arr.reduce((a,b)=>a+b,0)/arr.length;
+  return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0)/arr.length);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE DETAIL OVERLAY
+// ═══════════════════════════════════════════════════════════════════════════
+function showDetail(key) {
+  const s = SR.find(x=>x.k===key);
+  if(!s) return;
+  const hist = [...s.h].sort((a,b)=>a.y-b.y);
+  const histRows = hist.map(h => {
+    const winner = h.n>=Math.floor(h.t/2)+1?'NDA':h.i>=Math.floor(h.t/2)+1?'INDIA':'Split';
+    const wCol = winner==='NDA'?'#FF9933':winner==='INDIA'?'#0a8a0a':'#7c3aed';
+    return `<tr><td style="color:#94a3b8">${h.y}</td>
+      <td class="tright">${h.t}</td>
+      <td class="tright" style="color:#FF9933;font-weight:700">${h.n}</td>
+      <td class="tright" style="color:#0a8a0a;font-weight:700">${h.i}</td>
+      <td class="tright" style="color:#334a60">${h.o}</td>
+      <td class="tright">${h.t>0?Math.round(h.n/h.t*100)+'%':'—'}</td>
+      <td class="tcenter"><span style="color:${wCol};font-weight:700">${winner}</span></td>
+    </tr>`;
+  }).join('');
+
+  const slopeTxt = s.nsl>0.02?`<span class="up">▲ +${s.nsl.toFixed(2)} per 10yr</span>`:
+    s.nsl<-0.02?`<span class="dn">▼ ${s.nsl.toFixed(2)} per 10yr</span>`:
+    `<span class="flat">→ Flat</span>`;
+
+  document.getElementById('det-content').innerHTML = `
+    <h2>${s.state}</h2>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:14px">
+      ${s.s24} current seats · NDA 2024: ${s.n24} · INDIA 2024: ${s.i24} · NDA trend: ${slopeTxt}
+    </div>
+    <table class="stbl" style="margin-bottom:14px">
+      <tr><th>Year</th><th class="tright">Total</th><th class="tright">NDA</th>
+          <th class="tright">INDIA</th><th class="tright">Other</th>
+          <th class="tright">NDA%</th><th class="tcenter">Result</th></tr>
+      ${histRows}
+    </table>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.8">
+      <b style="color:var(--text)">Seat reallocation (pop-proportional):</b><br>
+      543 → ${s.p543} seats &nbsp;|&nbsp; 650 → ${s.p650} &nbsp;|&nbsp; 750 → ${s.p750} &nbsp;|&nbsp; 850 → ${s.p850} &nbsp;|&nbsp; 1,000 → ${s.p1000}<br><br>
+      <b style="color:var(--text)">2029 projection (linear trend on 1999–2024):</b><br>
+      NDA share: ${Math.round(s.nda29*100)}% &nbsp;|&nbsp; INDIA share: ${Math.round(s.ind29*100)}%
+    </div>`;
+  document.getElementById('det-overlay').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB 2: REALLOCATION
+// ═══════════════════════════════════════════════════════════════════════════
+function setSeats(n, btn) {
+  seatTarget = n;
+  document.querySelectorAll('[data-seats]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildRealloc();
+}
+
+function getSeatCol(n) {
+  return n===543?'p543':n===600?'p650':n===650?'p650':n===750?'p750':n===850?'p850':'p1000';
+}
+// Simplified: direct lookup
+function getSeatsForTarget(s) {
+  if(seatTarget===543) return s.p543;
+  if(seatTarget===600) return s.p650; // approximate with nearest
+  if(seatTarget===650) return s.p650;
+  if(seatTarget===750) return s.p750;
+  if(seatTarget===850) return s.p850;
+  return s.p1000;
+}
+
+function buildRealloc() {
+  const sorted = [...SR].sort((a,b)=>b.s24-a.s24);
+  const gainers = sorted.map(s=>({...s, newSeats:getSeatsForTarget(s), change:getSeatsForTarget(s)-s.s24}))
+    .filter(s=>s.change>0).sort((a,b)=>b.change-a.change);
+  const losers  = sorted.map(s=>({...s, newSeats:getSeatsForTarget(s), change:getSeatsForTarget(s)-s.s24}))
+    .filter(s=>s.change<0).sort((a,b)=>a.change-b.change);
+
+  document.getElementById('gain-sub').textContent =
+    `Change from current 543 seats to pop-proportional ${seatTarget} seats.`;
+  document.getElementById('lose-sub').textContent =
+    `States currently over-represented by population. ${seatTarget} seat House.`;
+
+  const maxChange = Math.max(...gainers.map(s=>s.change),1);
+  document.getElementById('gain-chart').innerHTML = gainers.map(s => `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+      <div style="width:120px;font-family:var(--mono);font-size:9px;color:var(--text)">${s.state}</div>
+      <div style="flex:1;background:#0a1628;border-radius:2px;height:14px;overflow:hidden">
+        <div style="height:100%;background:rgba(255,153,51,0.7);width:${Math.round(s.change/maxChange*100)}%"></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:#4ade80;font-weight:700;width:28px;text-align:right">+${s.change}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim);width:36px;text-align:right">${s.s24}→${s.newSeats}</div>
+    </div>`).join('');
+
+  document.getElementById('lose-chart').innerHTML = losers.length ? losers.map(s => `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+      <div style="width:120px;font-family:var(--mono);font-size:9px;color:var(--text)">${s.state}</div>
+      <div style="flex:1;background:#0a1628;border-radius:2px;height:14px;overflow:hidden">
+        <div style="height:100%;background:rgba(239,68,68,0.6);width:${Math.round(-s.change/Math.max(-losers[losers.length-1].change,1)*100)}%"></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:#f87171;font-weight:700;width:28px;text-align:right">${s.change}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim);width:36px;text-align:right">${s.s24}→${s.newSeats}</div>
+    </div>`).join('') : '<div style="font-family:var(--mono);font-size:9px;color:var(--dim)">No states lose seats at this House size with min-1 constraint.</div>';
+
+  // Full table
+  const tbody = sorted.map(s => {
+    const ns = getSeatsForTarget(s);
+    const ch = ns - s.s24;
+    const chStr = ch>0?`<span style="color:#4ade80">+${ch}</span>`:ch<0?`<span style="color:#f87171">${ch}</span>`:'<span style="color:var(--dim)">0</span>';
+    const nda_pct = s.s24>0?Math.round(s.n24/s.s24*100):0;
+    return `<tr>
+      <td>${s.state}</td>
+      <td class="tright">${s.s24}</td>
+      <td class="tright"><b>${ns}</b></td>
+      <td class="tright">${chStr}</td>
+      <td class="tright" style="color:#FF9933">${s.n24}</td>
+      <td class="tright" style="color:#0a8a0a">${s.i24}</td>
+      <td><div class="spark">
+        <div class="spark-nda" style="width:${nda_pct}%"></div>
+        <div class="spark-india" style="width:${s.s24>0?Math.round(s.i24/s.s24*100):0}%"></div>
+      </div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('realloc-body').innerHTML = tbody;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB 3: TRENDS
+// ═══════════════════════════════════════════════════════════════════════════
+function setFilter(f, btn) {
+  trendFilter = f;
+  document.querySelectorAll('[data-filter]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildTrends();
+}
+
+function buildTrends() {
+  const sortSel = document.getElementById('trend-sort')?.value || 'slope_desc';
+  let data = SR.filter(s => {
+    if(trendFilter==='gaining') return s.nsl>0.02;
+    if(trendFilter==='losing')  return s.nsl<-0.02;
+    if(trendFilter==='large')   return s.s24>=20;
+    return true;
+  }).sort((a,b) => {
+    if(sortSel==='slope_desc') return b.nsl-a.nsl;
+    if(sortSel==='slope_asc')  return a.nsl-b.nsl;
+    if(sortSel==='seats_desc') return b.s24-a.s24;
+    if(sortSel==='nda24_desc') return b.nda24-a.nda24;
+    return 0;
+  });
+
+  const tbody = data.map(s => {
+    const nslAbs = Math.abs(s.nsl);
+    const arr = s.nsl>0.02?'▲':s.nsl<-0.02?'▼':'→';
+    const cls = s.nsl>0.02?'up':s.nsl<-0.02?'dn':'flat';
+    const h0 = s.h.find(x=>x.y===1999);
+    const h1 = s.h[s.h.length-1];
+    const histBar = s.h.map(h => {
+      const pct = h.t>0?h.n/h.t:0;
+      const col = pct>0.5?`rgba(255,153,51,${0.3+pct*0.7})`:`rgba(10,138,10,${0.1+(1-pct)*0.5})`;
+      return `<div style="width:8px;height:8px;border-radius:1px;background:${col};display:inline-block;margin:1px" title="${h.y}: NDA ${Math.round(pct*100)}%"></div>`;
+    }).join('');
+    return `<tr style="cursor:pointer" onclick="showDetail('${s.k}')">
+      <td>${s.state}</td>
+      <td class="tright">${s.s24}</td>
+      <td class="tright" style="color:#FF9933;font-weight:700">${s.n24}</td>
+      <td class="tright" style="color:#0a8a0a;font-weight:700">${s.i24}</td>
+      <td class="tcenter"><span class="${cls}">${arr} ${nslAbs>0.02?nslAbs.toFixed(2)+'pp/10yr':''}</span></td>
+      <td class="tright" style="color:${s.nda29>s.nda24?'#4ade80':'#f87171'}">${Math.round(s.nda29*100)}%</td>
+      <td class="tright" style="color:${s.ind29>s.ind24?'#4ade80':'#f87171'}">${Math.round(s.ind29*100)}%</td>
+      <td><div class="seat-bar"><div class="seat-bar-fill" style="width:${Math.round(s.nda24*100)}%;background:rgba(255,153,51,0.75)"></div></div></td>
+      <td class="tcenter">${histBar}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('trend-body').innerHTML = tbody;
+
+  buildTrendCharts();
+}
+
+function buildTrendCharts() {
+  // Gaining states
+  const gainers = SR.filter(s=>s.nsl>0.05&&s.s24>=10).sort((a,b)=>b.nsl-a.nsl).slice(0,8);
+  const losers  = SR.filter(s=>s.nsl<-0.05&&s.s24>=8).sort((a,b)=>a.nsl-b.nsl).slice(0,8);
+  drawTrendBars('gain-trend-canvas', gainers, '#FF9933', 'Fastest NDA gaining');
+  drawTrendBars('lose-trend-canvas', losers,  '#0a8a0a', 'Fastest NDA declining');
+}
+
+function drawTrendBars(id, states, col, label) {
+  const canvas = document.getElementById(id);
+  if(!canvas) return;
+  const W = canvas.parentElement.clientWidth-32;
+  canvas.width=W*2; canvas.height=360; canvas.style.height='180px';
+  const ctx=canvas.getContext('2d'); ctx.scale(2,2);
+  const cW=W, cH=180, P={t:10,r:80,b:14,l:130};
+  const iW=cW-P.l-P.r, iH=cH-P.t-P.b;
+  ctx.fillStyle='#0f2444'; ctx.fillRect(0,0,cW,cH);
+  if(!states.length){ctx.fillStyle='#334a60';ctx.font='9px JetBrains Mono';ctx.fillText('No states match',P.l,cH/2);return;}
+  const barH=Math.floor((iH-states.length*3)/states.length);
+  const maxAbs=Math.max(...states.map(s=>Math.abs(s.nsl)),0.01);
+  states.forEach((s,i) => {
+    const y=P.t+i*(barH+3);
+    ctx.fillStyle='#334a60';ctx.font='8px JetBrains Mono';ctx.textAlign='right';
+    ctx.fillText(s.state.slice(0,18),P.l-4,y+barH/2+3);
+    const w=Math.abs(s.nsl)/maxAbs*iW;
+    ctx.fillStyle=hexA(col,0.75); ctx.fillRect(P.l,y,w,barH);
+    ctx.fillStyle='#94a3b8';ctx.font='8px JetBrains Mono';ctx.textAlign='left';
+    ctx.fillText(`${s.nsl>0?'+':''}${s.nsl.toFixed(2)}pp/10yr  NDA${Math.round(s.nda24*100)}%→${Math.round(s.nda29*100)}%`,P.l+w+4,y+barH/2+3);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB 4: SCENARIOS
+// ═══════════════════════════════════════════════════════════════════════════
+function setEra(e, btn) {
+  scenEra = e;
+  document.querySelectorAll('[data-era]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildScenarios();
+}
+
+function buildScenarios() {
+  const prefix = scenEra==='2024'?'2024 bloc shares':'2029 trend projection';
+  const filtered = SO.filter(s=>s.scenario.startsWith(prefix));
+
+  // Cards for key seat sizes
+  const keySeats = [543, 650, 850, 1000];
+  const cards = keySeats.map(n => {
+    const r = filtered.find(s=>s.total_seats===n)||filtered[0];
+    if(!r) return '';
+    return `<div class="scen-card">
+      <div class="sl">${n.toLocaleString()} seats (quota=${r.quota})</div>
+      <div class="sv" style="color:#FF9933">${r.avg_nda_seats.toFixed(0)} NDA</div>
+      <div style="font-family:var(--mono);font-size:9px;color:#0a8a0a;margin-top:2px">${r.avg_india_seats.toFixed(0)} INDIA avg</div>
+      <div class="pbar"><div class="pbar-f" style="width:${Math.round(r.avg_nda_seats/r.total_seats*100)}%;background:#FF9933"></div></div>
+      <div class="sn">P(NDA maj): ${pct(r.p_nda,0)} · P(Hung): ${pct(r.p_hung,0)}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('scen-cards').innerHTML = cards;
+
+  // Full table
+  const tbody = SO.map(r => {
+    const isActive = r.scenario.startsWith(prefix);
+    return `<tr style="opacity:${isActive?1:0.35}">
+      <td style="font-family:var(--mono);font-size:9px">${r.scenario}</td>
+      <td class="tright">${r.total_seats}</td>
+      <td class="tright">${r.quota}</td>
+      <td class="tright" style="color:#FF9933;font-weight:700">${r.avg_nda_seats.toFixed(1)}</td>
+      <td class="tright" style="color:var(--dim)">${r.p10_nda}–${r.p90_nda}</td>
+      <td class="tright" style="color:${r.p_nda>0.99?'#4ade80':'#f59e0b'}">${pct(r.p_nda,1)}</td>
+      <td class="tright" style="color:#0a8a0a">${pct(r.p_india,1)}</td>
+      <td class="tright" style="color:#a78bfa">${pct(r.p_hung,1)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('scen-tbody').innerHTML = tbody;
+
+  drawScenLine(filtered);
+  drawStateGainChart();
+}
+
+function drawScenLine(filtered) {
+  const canvas = document.getElementById('scen-line-canvas');
+  if(!canvas) return;
+  const W=canvas.parentElement.clientWidth-32;
+  canvas.width=W*2; canvas.height=400; canvas.style.height='200px';
+  const ctx=canvas.getContext('2d'); ctx.scale(2,2);
+  const cW=W, cH=200, P={t:20,r:100,b:32,l:44};
+  const iW=cW-P.l-P.r, iH=cH-P.t-P.b;
+  ctx.fillStyle='#0f2444'; ctx.fillRect(0,0,cW,cH);
+
+  const totals = filtered.map(r=>r.total_seats).sort((a,b)=>a-b);
+  const minN=totals[0], maxN=totals[totals.length-1];
+  const xS=t=>P.l+((t-minN)/(maxN-minN))*iW;
+  const maxSeat=Math.max(...filtered.map(r=>Math.max(r.avg_nda_seats,r.avg_india_seats)));
+  const yS=v=>P.t+(1-v/maxSeat)*iH;
+
+  // Grid + quota
+  [0,200,300,400,500].filter(v=>v<=maxSeat).forEach(v => {
+    ctx.beginPath();ctx.moveTo(P.l,yS(v));ctx.lineTo(cW-P.r,yS(v));
+    ctx.strokeStyle='#0d2035';ctx.lineWidth=0.5;ctx.stroke();
+    ctx.fillStyle='#334a60';ctx.font='7px JetBrains Mono';ctx.textAlign='right';
+    ctx.fillText(v,P.l-3,yS(v)+3);
+  });
+
+  // Quota lines
+  filtered.forEach(r => {
+    ctx.beginPath();ctx.moveTo(xS(r.total_seats),yS(r.quota));ctx.lineTo(xS(r.total_seats)+1,yS(r.quota));
+  });
+
+  // NDA line
+  ctx.beginPath();
+  filtered.sort((a,b)=>a.total_seats-b.total_seats).forEach((r,i)=>i===0?ctx.moveTo(xS(r.total_seats),yS(r.avg_nda_seats)):ctx.lineTo(xS(r.total_seats),yS(r.avg_nda_seats)));
+  ctx.strokeStyle='#FF9933';ctx.lineWidth=2.5;ctx.stroke();
+
+  // INDIA line
+  ctx.beginPath();
+  filtered.sort((a,b)=>a.total_seats-b.total_seats).forEach((r,i)=>i===0?ctx.moveTo(xS(r.total_seats),yS(r.avg_india_seats)):ctx.lineTo(xS(r.total_seats),yS(r.avg_india_seats)));
+  ctx.strokeStyle='#0a8a0a';ctx.lineWidth=2.5;ctx.stroke();
+
+  // Quota line (dashed, per total)
+  ctx.setLineDash([3,3]);
+  filtered.sort((a,b)=>a.total_seats-b.total_seats).forEach((r,i,arr) => {
+    if(i===0){ctx.beginPath();ctx.moveTo(xS(r.total_seats),yS(r.quota));}
+    else{ctx.lineTo(xS(r.total_seats),yS(r.quota));}
+    if(i===arr.length-1)ctx.stroke();
+  });
+  ctx.strokeStyle='#f59e0b';ctx.lineWidth=1;ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Dots
+  filtered.forEach(r => {
+    [[r.avg_nda_seats,'#FF9933'],[r.avg_india_seats,'#0a8a0a']].forEach(([v,c])=>{
+      ctx.beginPath();ctx.arc(xS(r.total_seats),yS(v),3,0,Math.PI*2);
+      ctx.fillStyle=c;ctx.fill();
+    });
+    ctx.fillStyle='#334a60';ctx.font='8px JetBrains Mono';ctx.textAlign='center';
+    ctx.fillText(r.total_seats,xS(r.total_seats),cH-P.b+14);
+  });
+
+  // Labels
+  const last = filtered[filtered.length-1];
+  ctx.fillStyle='#FF9933';ctx.font='8px JetBrains Mono';ctx.textAlign='left';
+  ctx.fillText('NDA avg',xS(last.total_seats)+4,yS(last.avg_nda_seats)+3);
+  ctx.fillStyle='#0a8a0a';ctx.fillText('INDIA avg',xS(last.total_seats)+4,yS(last.avg_india_seats)+3);
+  ctx.fillStyle='#f59e0b';ctx.fillText('Quota',xS(last.total_seats)+4,yS(last.quota)+3);
+}
+
+function drawStateGainChart() {
+  const canvas = document.getElementById('state-gain-canvas');
+  if(!canvas) return;
+  const W=canvas.parentElement.clientWidth-32;
+  canvas.width=W*2; canvas.height=400; canvas.style.height='200px';
+  const ctx=canvas.getContext('2d'); ctx.scale(2,2);
+  const cW=W, cH=200, P={t:10,r:60,b:14,l:140};
+  const iW=cW-P.l-P.r, iH=cH-P.t-P.b;
+  ctx.fillStyle='#0f2444'; ctx.fillRect(0,0,cW,cH);
+
+  // NDA seat gain per state: (nda24_share * pop850) - (nda24_share * pop543)
+  const gains = SR.map(s => ({
+    state: s.state,
+    gain: Math.round(s.nda24 * s.p850 - s.nda24 * s.p543),
+    nda24_pct: Math.round(s.nda24*100),
+    s24: s.s24,
+  })).filter(s=>s.gain>0).sort((a,b)=>b.gain-a.gain).slice(0,12);
+
+  const maxG=Math.max(...gains.map(s=>s.gain),1);
+  const barH=Math.floor((iH-gains.length*3)/gains.length);
+  gains.forEach((s,i) => {
+    const y=P.t+i*(barH+3);
+    ctx.fillStyle='#334a60';ctx.font='8px JetBrains Mono';ctx.textAlign='right';
+    ctx.fillText(s.state.slice(0,20),P.l-4,y+barH/2+3);
+    const w=s.gain/maxG*iW;
+    ctx.fillStyle='rgba(255,153,51,0.75)';ctx.fillRect(P.l,y,w,barH);
+    ctx.fillStyle='#94a3b8';ctx.font='8px JetBrains Mono';ctx.textAlign='left';
+    ctx.fillText(`+${s.gain} NDA seats  (NDA share ${s.nda24_pct}%)`,P.l+w+4,y+barH/2+3);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════════════════
+buildHeatmap();
+buildRealloc();
+buildTrends();
+buildScenarios();
+
+window.addEventListener('resize', () => {
+  buildNatlChart();
+  buildTrendCharts();
+  drawStateGainChart();
+  const r=document.getElementById('panel-scenarios');
+  if(r.classList.contains('active'))buildScenarios();
+});
+</script>
+</body>
+</html>
