@@ -14,7 +14,7 @@ def load(relpath, *names):
     for node in tree.body:
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             keep.append(node)
-        elif isinstance(node, ast.Assign):
+        elif isinstance(node, ast.Assign) and all(isinstance(t, ast.Name) for t in node.targets):
             try:
                 ast.literal_eval(node.value)
                 keep.append(node)
