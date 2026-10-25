@@ -82,21 +82,15 @@ print("\n--- Post-Reservation Scenarios (Women's Block Added) ---\n")
 
 scenario_results = []
 
-for scenario_name, scenario in scenarios.items():
-    nda_pre = scenario['NDA']
-    india_pre = scenario['INDIA']
-    other_pre = 543 - nda_pre - india_pre
+def classify_scenario(nda_pre, india_pre, women=31, quota=272, total=543):
+    """Equal-carving model for one scenario: each of NDA / INDIA loses int(women/3) seats,
+    'other' loses the remainder, and the women's bloc holds `women` seats."""
+    carve = int(women / 3)
+    other_pre = total - nda_pre - india_pre
+    nda_post = max(0, nda_pre - carve)
+    india_post = max(0, india_pre - carve)
+    other_post = max(0, other_pre - (women - 2 * carve))
 
-    # Post-reservation (equal carving)
-    nda_post = max(0, nda_pre - int(carving_per_bloc))
-    india_post = max(0, india_pre - int(carving_per_bloc))
-    other_post = max(0, other_pre - (women_elected_est - 2*int(carving_per_bloc)))
-    women_post = women_elected_est
-
-    # Sanity check
-    total_post = nda_post + india_post + other_post + women_post
-
-    # Winning status
     if nda_post >= quota:
         outcome_pre = "NDA Majority"
     elif india_pre >= quota:
@@ -108,30 +102,40 @@ for scenario_name, scenario in scenarios.items():
         outcome_post = "NDA Majority"
     elif india_post >= quota:
         outcome_post = "INDIA Majority"
-    elif (nda_post + women_post) >= quota:
+    elif (nda_post + women) >= quota:
         outcome_post = "NDA + Women (Kingmakers)"
-    elif (india_post + women_post) >= quota:
+    elif (india_post + women) >= quota:
         outcome_post = "INDIA + Women (Kingmakers)"
     else:
         outcome_post = "Hung"
 
-    nda_needs_women = (nda_post < quota) and ((nda_post + women_post) >= quota)
-    india_needs_women = (india_post < quota) and ((india_post + women_post) >= quota)
-
-    scenario_results.append({
-        'Scenario': scenario_name,
-        'Label': scenario['label'],
+    nda_needs_women = (nda_post < quota) and ((nda_post + women) >= quota)
+    india_needs_women = (india_post < quota) and ((india_post + women) >= quota)
+    return {
         'NDA_Pre': nda_pre,
         'INDIA_Pre': india_pre,
         'Outcome_Pre': outcome_pre,
         'NDA_Post': nda_post,
         'INDIA_Post': india_post,
-        'Women': women_post,
+        'Other_Post': other_post,
+        'Women': women,
         'Outcome_Post': outcome_post,
         'NDA_Needs_Women': nda_needs_women,
         'INDIA_Needs_Women': india_needs_women,
         'Outcome_Change': outcome_post != outcome_pre,
-    })
+    }
+
+
+for scenario_name, scenario in scenarios.items():
+    r = classify_scenario(scenario['NDA'], scenario['INDIA'], women_elected_est, quota)
+    nda_pre, india_pre = r['NDA_Pre'], r['INDIA_Pre']
+    other_pre = 543 - nda_pre - india_pre
+    nda_post, india_post, other_post, women_post = r['NDA_Post'], r['INDIA_Post'], r['Other_Post'], r['Women']
+    outcome_pre, outcome_post = r['Outcome_Pre'], r['Outcome_Post']
+    nda_needs_women, india_needs_women = r['NDA_Needs_Women'], r['INDIA_Needs_Women']
+
+    row = {k: v for k, v in r.items() if k != 'Other_Post'}
+    scenario_results.append({'Scenario': scenario_name, 'Label': scenario['label'], **row})
 
     print(f"\n{scenario_name}:")
     print(f"  Before: NDA {nda_pre:3} | INDIA {india_pre:3} | Other {other_pre:3} → {outcome_pre}")
