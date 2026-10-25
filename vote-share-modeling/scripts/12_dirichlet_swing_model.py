@@ -57,7 +57,10 @@ def minka_fixed_point_dirichlet(X, max_iter=1000, tol=1e-7, alpha_cap=500):
         alpha_sum = alpha.sum()
         psi_sum = digamma(alpha_sum)
         grad = psi_sum - digamma(alpha) + log_p_bar
-        alpha_new = np.array([_invert_digamma(digamma(alpha[k]) - grad[k]) for k in range(K)])
+        # Minka (2000) eq. 9: psi(alpha_k_new) = psi(sum alpha) + mean log p_k,
+        # i.e. psi(alpha_k) + grad_k. The previous '- grad' doubled the step in
+        # the wrong direction and drove alpha to the clip bounds.
+        alpha_new = np.array([_invert_digamma(digamma(alpha[k]) + grad[k]) for k in range(K)])
         alpha_new = np.clip(alpha_new, 1e-3, alpha_cap)
         if np.max(np.abs(alpha_new - alpha)) < tol:
             alpha = alpha_new
