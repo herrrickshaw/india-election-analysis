@@ -8,6 +8,10 @@ import pandas as pd
 import gzip
 import os
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent))
+from sexcode import is_female  # TCPD codes sex as 'F', not 'FEMALE'
 
 # Paths
 REPO_ROOT = Path(__file__).parent.parent.parent
@@ -31,7 +35,7 @@ print(f"States: {df['State_Name'].nunique()}")
 print("\n=== Part 1: Women Candidacy by State ===")
 
 # Filter to women candidates only
-women_df = df[df['Sex'] == 'FEMALE'].copy()
+women_df = df[is_female(df['Sex'])].copy()
 print(f"Total women candidates: {len(women_df):,} ({100*len(women_df)/len(df):.1f}% of all candidates)")
 
 # State-level summary: women candidacy rate, win rate, incumbency

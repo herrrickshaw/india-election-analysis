@@ -11,6 +11,10 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent))
+from sexcode import is_female  # TCPD codes sex as 'F', not 'FEMALE'
 import pickle
 
 # Paths
@@ -35,7 +39,7 @@ df['Won'] = (df['Position'] == 1).astype(int)
 print(f"Winners (Position==1): {df['Won'].sum():,} ({100*df['Won'].mean():.2f}%)")
 
 # Features (handle nulls)
-df['Female'] = (df['Sex'] == 'FEMALE').fillna(False).astype(int)
+df['Female'] = is_female(df['Sex']).astype(int)
 df['Incumbent'] = df['Incumbent'].fillna(False).astype(int)
 
 print(f"Female candidates: {df['Female'].sum():,} ({100*df['Female'].mean():.2f}%)")
