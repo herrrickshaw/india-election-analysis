@@ -91,7 +91,7 @@ def classify_scenario(nda_pre, india_pre, women=31, quota=272, total=543):
     india_post = max(0, india_pre - carve)
     other_post = max(0, other_pre - (women - 2 * carve))
 
-    if nda_post >= quota:
+    if nda_pre >= quota:
         outcome_pre = "NDA Majority"
     elif india_pre >= quota:
         outcome_pre = "INDIA Majority"
