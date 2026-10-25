@@ -72,6 +72,23 @@ Built using publicly available data as of June 2026 (ECI statistical reports, Ce
 India 2011, Wikipedia-compiled Lok Sabha membership records, PRS Legislative Research).
 See in-workbook source notes for full citations.
 
+## Data citation
+
+Constituency- and candidate-level election data (the derived files under
+`vote-share-modeling/data/` and `data/processed/`) come from:
+
+> TCPD Indian Elections Data v2.0, Trivedi Centre for Political Data, Ashoka University (2021).
+
+TCPD does not endorse this analysis, and any errors in it are this repository's own.
+
+## Assumption audit
+
+[`ASSUMPTIONS.md`](ASSUMPTIONS.md) lists each modelling assumption, the evidence for and
+against it from the committed historical data, and how it affects the headline numbers.
+Each row is covered by a test in `tests/test_assumptions_*.py`. Assumptions the data
+contradicts are written as strict `xfail` tests, and each one records the measured gap.
+Run them with `pytest tests/`.
+
 # Boundary conditions
 The Lok Sabha chamber in the new Parliament building (Sansad Bhavan) in New Delhi has a standard seating capacity of 888 seats. Additionally, the hall's design can be expanded to accommodate up to 1,272 seats to host joint sessions of both houses of Parliament. 
 

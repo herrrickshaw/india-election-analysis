@@ -9,6 +9,10 @@ import pandas as pd
 import gzip
 import numpy as np
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent))
+from sexcode import is_female  # TCPD codes sex as 'F', not 'FEMALE'
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 DATA_RAW = REPO_ROOT / "data" / "raw"
@@ -30,7 +34,7 @@ print(f"States: {df['State_Name'].nunique()}")
 print("\n--- Part 1: National Lok Sabha Summary ---")
 
 # Filter to women
-women_df = df[df['Sex'] == 'FEMALE'].copy()
+women_df = df[is_female(df['Sex'])].copy()
 
 # Target: Position == 1 (winner/incumbent)
 df['Won'] = (df['Position'] == 1).astype(int)
@@ -144,7 +148,7 @@ print("\n--- Part 5: Party Composition (Latest Election) ---")
 
 latest_year = df['Year'].max()
 latest_data = df[df['Year'] == latest_year]
-latest_women = latest_data[latest_data['Sex'] == 'FEMALE']
+latest_women = latest_data[is_female(latest_data['Sex'])]
 
 print(f"\n{latest_year} Lok Sabha Election:")
 print(f"  Total candidates: {len(latest_data):,}")
@@ -159,7 +163,7 @@ print(top_parties.to_string())
 print(f"\nWomen candidates in top parties:")
 for party in top_parties.index[:5]:
     party_data = latest_data[latest_data['Party'] == party]
-    party_women = party_data[party_data['Sex'] == 'FEMALE']
+    party_women = party_data[is_female(party_data['Sex'])]
     pct = 100 * len(party_women) / len(party_data) if len(party_data) > 0 else 0
     print(f"  {party}: {len(party_women)} / {len(party_data)} ({pct:.1f}%)")
 
