@@ -123,12 +123,14 @@ def simulate_seats(rng, state_means, state_seats, n_sims, conc=18.0,
     seat_state = np.repeat(np.arange(len(state_seats)), state_seats)
     out = np.empty((n_sims, 3), int)
     for s in range(n_sims):
-        m = state_means.copy()
-        shock = rng.normal(0, national_sd) + rng.normal(0, state_sd, len(m)) if (national_sd or state_sd) else 0
-        m[:, 0] = m[:, 0] + shock
-        m[:, 1] = m[:, 1] - shock
-        m = np.clip(m, 0.005, None)
-        m = m / m.sum(axis=1, keepdims=True)
+        m = state_means
+        if national_sd or state_sd:
+            shock = rng.normal(0, national_sd) + rng.normal(0, state_sd, len(m))
+            m = m.copy()
+            m[:, 0] = m[:, 0] + shock
+            m[:, 1] = m[:, 1] - shock
+            m = np.clip(m, 0.005, None)
+            m = m / m.sum(axis=1, keepdims=True)
         if n_seats is not None:  # the scripts' way: each seat assigned to a state at random
             seat_state = rng.choice(len(state_seats), size=n_seats, p=state_seats / state_seats.sum())
         alpha = np.clip(m[seat_state] * conc, 0.3, None)

@@ -152,11 +152,11 @@ def test_reserved_seat_count_is_one_third():
 @pytest.mark.xfail(strict=True, reason=(
     "Women are modelled as a separate 31-seat bloc carved equally from NDA/INDIA/others "
     "and voting cohesively. Women MPs are elected on party tickets: in 2019 the 78 "
-    "women winners split 43 NDA / 15 INDIA / 20 Other (by the repo's bloc map), so "
+    "women winners split 43 NDA / 18 INDIA / 17 Other (by the repo's bloc map), so "
     "they are inside the blocs, not a pivot between them, and not equally drawn."))
 def test_women_winners_split_equally_across_blocs():
     f = winners().query("Year == 2019 and Sex == 'F'")["Bloc"].value_counts()
-    assert f.to_dict() == {"NDA": 43, "Other": 20, "INDIA": 15}
+    assert f.to_dict() == {"NDA": 43, "INDIA": 18, "Other": 17}
     assert f.max() - f.min() <= 5
 
 
@@ -166,13 +166,13 @@ def test_women_winners_split_equally_across_blocs():
 @pytest.mark.xfail(strict=True, reason=(
     "04_coalition_sensitivity.py assumes NDA = INDIA = 35% of seats in EVERY state, so "
     "'High' hung risk is guaranteed in all 34 states by construction (0.35 < 0.5). In "
-    "the repo's 2024 state results, one bloc held a seat majority in 31 of 36 states."))
+    "the repo's 2024 state results, one bloc held a seat majority in 28 of 36 states."))
 def test_state_hung_risk_is_not_fixed_by_construction():
     risk = pd.read_csv(ROOT / "data/processed/hung_parliament_risk_assessment.csv")
     assert (risk.NDA_Seats_Est == risk.INDIA_Seats_Est).all()
     st = pd.read_csv(ROOT / "coalition-game-theory/seat-bias-analysis/data/state_2024_bloc_results.csv")
     majority = ((st.NDA_2024 > st.Seats_2024 / 2) | (st.INDIA_2024 > st.Seats_2024 / 2)).sum()
-    assert majority == 31 and len(st) == 36
+    assert majority == 28 and len(st) == 36
     assert (risk.Hung_Parliament_Risk == "High").mean() < 0.5
 
 
