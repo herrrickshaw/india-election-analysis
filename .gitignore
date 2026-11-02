@@ -17,3 +17,8 @@ Thumbs.db
 # Raw TCPD Lok Dhaba source downloads (user's own large files, not redistributed)
 TCPD_*_All_States_*.csv
 TCPD_*_All_States_*.csv.gz
+
+# Local tooling
+.venv/
+.pytest_cache/
+.ruff_cache/
