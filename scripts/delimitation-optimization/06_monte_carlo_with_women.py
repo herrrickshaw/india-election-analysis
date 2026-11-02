@@ -4,38 +4,25 @@ Phase 5: Monte Carlo Coalition Scenarios with Women's Reservation
 Apply women's reservation to the original 20,000 Monte Carlo LS simulations.
 Quantify impact on NDA vs INDIA winning probabilities.
 """
+from __future__ import annotations
+
+from pathlib import Path
 
 import pandas as pd
-import numpy as np
-from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 DATA_PROCESSED = REPO_ROOT / "data" / "processed"
 OUTPUT_DIR = REPO_ROOT / "coalition-game-theory" / "output"
 
-print("=== Phase 5: Monte Carlo with Women's Reservation ===\n")
-
-# === BASELINE MONTE CARLO RESULTS (from Excel) ===
-print("--- Baseline: Original Monte Carlo (20,000 simulations, no women's reservation) ---\n")
-
-baseline_mc = {
+# Baseline results of the original 20,000-draw Monte Carlo (coalition-game-theory/).
+BASELINE_MC = {
     'NDA_Majority_Prob': 0.5158,
     'INDIA_Majority_Prob': 0.10505,
     'Hung_Parliament_Prob': 0.37915,
     'Total_Simulations': 20000,
 }
-
-nda_majority_count = int(0.5158 * 20000)
-india_majority_count = int(0.10505 * 20000)
-hung_parliament_count = int(0.37915 * 20000)
-
-print(f"NDA Outright Majority: {baseline_mc['NDA_Majority_Prob']:.2%} ({nda_majority_count:,} / 20,000)")
-print(f"INDIA Outright Majority: {baseline_mc['INDIA_Majority_Prob']:.2%} ({india_majority_count:,} / 20,000)")
-print(f"Hung Parliament: {baseline_mc['Hung_Parliament_Prob']:.2%} ({hung_parliament_count:,} / 20,000)")
-print(f"Majority Quota (LS): 272 / 543 seats")
-
-# === SCENARIO DEFINITIONS (from Excel) ===
-print("\n--- Scenario Definitions (6 Scenarios) ---\n")
+QUOTA = 272
+LOK_SABHA_SEATS = 543
 
 scenarios = {
     'S0_Actual_Current': {'NDA': 318, 'INDIA': 206, 'label': 'Actual Current (June 2026)'},
@@ -46,41 +33,14 @@ scenarios = {
     'S5_INDIA_Largest': {'NDA': 235, 'INDIA': 260, 'label': 'INDIA Largest (Hung)'},
 }
 
-# Compute winning status for each scenario (before women)
-quota = 272
-for scenario_name, scenario in scenarios.items():
-    nda = scenario['NDA']
-    india = scenario['INDIA']
-    other = 543 - nda - india
-
-    if nda >= quota:
-        outcome = "NDA Majority"
-    elif india >= quota:
-        outcome = "INDIA Majority"
-    else:
-        outcome = "Hung Parliament"
-
-    print(f"{scenario_name:20} | {scenario['label']:30} | NDA {nda:3} | INDIA {india:3} | → {outcome}")
-
-# === WOMEN'S RESERVATION IMPACT ===
-print("\n--- Women's Reservation Impact (Equal-Carving Model) ---\n")
-
 women_reserved_ls = 188  # 33% of 543
 women_elected_est = 31  # Conservative estimate (5.7% win rate)
 
-print(f"Women's reserved seats: {women_reserved_ls}")
-print(f"Estimated women elected: {women_elected_est}")
-print(f"Carving assumption: Equal reduction across NDA/INDIA/others")
+# Post-reservation probability adjustments (approximate, conservative; hand-set assumptions).
+NDA_LOSES_MAJORITY_PCT = 0.05  # share of previously-majority simulations that lose majority
+INDIA_LOSES_MAJORITY_PCT = 0.02  # INDIA loses less
+KINGMAKER_CREATION_PCT = 0.08  # share of previously-hung simulations that become kingmaker scenarios
 
-# Carving: each bloc loses ~10 seats (188/3 ≈ 62, but women only 31, so smaller reduction)
-# Simplified: women carved equally from all blocs
-carving_per_bloc = women_elected_est / 3
-print(f"Average seats lost per bloc: {carving_per_bloc:.1f}")
-
-# === POST-RESERVATION SCENARIOS ===
-print("\n--- Post-Reservation Scenarios (Women's Block Added) ---\n")
-
-scenario_results = []
 
 def classify_scenario(nda_pre, india_pre, women=31, quota=272, total=543):
     """Equal-carving model for one scenario: each of NDA / INDIA loses int(women/3) seats,
@@ -126,110 +86,13 @@ def classify_scenario(nda_pre, india_pre, women=31, quota=272, total=543):
     }
 
 
-for scenario_name, scenario in scenarios.items():
-    r = classify_scenario(scenario['NDA'], scenario['INDIA'], women_elected_est, quota)
-    nda_pre, india_pre = r['NDA_Pre'], r['INDIA_Pre']
-    other_pre = 543 - nda_pre - india_pre
-    nda_post, india_post, other_post, women_post = r['NDA_Post'], r['INDIA_Post'], r['Other_Post'], r['Women']
-    outcome_pre, outcome_post = r['Outcome_Pre'], r['Outcome_Post']
-    nda_needs_women, india_needs_women = r['NDA_Needs_Women'], r['INDIA_Needs_Women']
-
-    row = {k: v for k, v in r.items() if k != 'Other_Post'}
-    scenario_results.append({'Scenario': scenario_name, 'Label': scenario['label'], **row})
-
-    print(f"\n{scenario_name}:")
-    print(f"  Before: NDA {nda_pre:3} | INDIA {india_pre:3} | Other {other_pre:3} → {outcome_pre}")
-    print(f"  After:  NDA {nda_post:3} | INDIA {india_post:3} | Women {women_post:2} | Other {other_post:3} → {outcome_post}")
-    if nda_needs_women or india_needs_women:
-        kingmaker = "NDA" if nda_needs_women else "INDIA"
-        print(f"  ⭐ CHANGE: {kingmaker} becomes dependent on women's support!")
-
-# === MONTE CARLO POST-RESERVATION ===
-print("\n--- Monte Carlo Post-Reservation Analysis ---\n")
-
-# For 20,000 simulations, apply carving to each
-# Assumption: carving reduces NDA/INDIA equally across all draws
-
-print("Scenario Analysis (from 6 fixed scenarios):")
-print("-" * 100)
-print(f"{'Scenario':<20} | {'Pre-Res Outcome':<20} | {'Post-Res Outcome':<30} | {'Outcome Changed?':<15}")
-print("-" * 100)
-
-scenarios_changed = 0
-for result in scenario_results:
-    changed_str = "✓ YES" if result['Outcome_Change'] else "No"
-    print(f"{result['Scenario']:<20} | {result['Outcome_Pre']:<20} | {result['Outcome_Post']:<30} | {changed_str:<15}")
-    if result['Outcome_Change']:
-        scenarios_changed += 1
-
-print(f"\nScenarios with outcome changes: {scenarios_changed} / 6")
-
-# === MONTE CARLO PROBABILITY SHIFTS ===
-print("\n--- Monte Carlo Probability Shifts (20,000 Simulations) ---\n")
-
-print("Baseline (without women's reservation):")
-print(f"  NDA Majority: {baseline_mc['NDA_Majority_Prob']:.2%}")
-print(f"  INDIA Majority: {baseline_mc['INDIA_Majority_Prob']:.2%}")
-print(f"  Hung Parliament: {baseline_mc['Hung_Parliament_Prob']:.2%}")
-
-# Post-reservation shifts (approximate, conservative)
-# Assumption: carving 31 seats reduces both NDA and INDIA's majority probability
-# But creates kingmaker scenario in ~10-15% of cases
-
-nda_loses_majority_pct = 0.05  # 5% of previously-majority simulations lose majority
-kingmaker_creation_pct = 0.08  # 8% of previously-hung become kingmaker scenarios
-
-nda_majority_post = baseline_mc['NDA_Majority_Prob'] * (1 - nda_loses_majority_pct)
-india_majority_post = baseline_mc['INDIA_Majority_Prob'] * (1 - 0.02)  # INDIA loses less
-hung_parliament_post = baseline_mc['Hung_Parliament_Prob'] + kingmaker_creation_pct + (nda_loses_majority_pct * baseline_mc['NDA_Majority_Prob'])
-
-# Women kingmakers scenario
-women_kingmakers_pct = kingmaker_creation_pct
-
-print(f"\nPost-Reservation (Equal-Carving Model):")
-print(f"  NDA Outright Majority: {nda_majority_post:.2%} (change: {nda_majority_post - baseline_mc['NDA_Majority_Prob']:+.2%})")
-print(f"  INDIA Outright Majority: {india_majority_post:.2%} (change: {india_majority_post - baseline_mc['INDIA_Majority_Prob']:+.2%})")
-print(f"  Women Kingmakers (coalition-dependent): {women_kingmakers_pct:.2%}")
-print(f"  Pure Hung Parliament (no bloc capable): {hung_parliament_post - women_kingmakers_pct:.2%}")
-print(f"  Total Hung/Uncertain: {hung_parliament_post:.2%} (change: {hung_parliament_post - baseline_mc['Hung_Parliament_Prob']:+.2%})")
-
-# === STRATEGIC IMPLICATIONS ===
-print("\n--- Strategic Implications for Women's Placement ---\n")
-
-print("Current Monte Carlo conclusion (no women):")
-print(f"  • NDA is majority-likely (51.58% chance)")
-print(f"  • INDIA faces structural majority problem (10.5% chance)")
-print(f"  • ~38% of scenarios result in hung parliament")
-
-print(f"\nPost-Reservation implications:")
-print(f"  • NDA's majority likelihood decreases slightly (51.58% → ~49%)")
-print(f"  • Women gain kingmaker power in ~8% of scenarios")
-print(f"  • INDIA's chances improve modestly if women align (still faces 48.5% of NDA majority)")
-print(f"  • Strategic placement in swing scenarios (S2-S5) amplifies women's leverage")
-
-# === SAVE OUTPUTS ===
-print("\n--- Saving Outputs ---")
-
-results_df = pd.DataFrame(scenario_results)
-results_df.to_csv(DATA_PROCESSED / "monte_carlo_women_impact_scenarios.csv", index=False)
-
-# Summary statistics
-mc_summary = {
-    'Baseline_NDA_Majority_Prob': baseline_mc['NDA_Majority_Prob'],
-    'Baseline_INDIA_Majority_Prob': baseline_mc['INDIA_Majority_Prob'],
-    'Baseline_Hung_Prob': baseline_mc['Hung_Parliament_Prob'],
-    'Post_Women_NDA_Majority_Prob': nda_majority_post,
-    'Post_Women_INDIA_Majority_Prob': india_majority_post,
-    'Post_Women_Hung_Prob': hung_parliament_post,
-    'Post_Women_Kingmakers_Prob': women_kingmakers_pct,
-    'Women_Elected_Estimate': women_elected_est,
-    'Women_Reserved_Seats': women_reserved_ls,
-    'Scenarios_Changed': scenarios_changed,
-}
-
-pd.DataFrame([mc_summary]).to_csv(DATA_PROCESSED / "monte_carlo_summary.csv", index=False)
-
-summary_text = f"""
+def render_summary(nda_majority_count, india_majority_count, hung_parliament_count, nda_majority_post,
+                   india_majority_post, hung_parliament_post, women_kingmakers_pct, scenarios_changed) -> str:
+    """Plain-text report written to monte_carlo_women_impact_summary.txt."""
+    baseline_mc = BASELINE_MC
+    nda_loses_majority_pct = NDA_LOSES_MAJORITY_PCT
+    kingmaker_creation_pct = KINGMAKER_CREATION_PCT
+    return f"""
 MONTE CARLO ANALYSIS: NDA vs INDIA with Women's Reservation (Phase 5)
 
 BASELINE (20,000 Simulations, No Women's Reservation):
@@ -289,13 +152,180 @@ LIMITATIONS OF THIS ANALYSIS:
 - Monte Carlo ranges (NDA 220-360) based on historical volatility; post-women may differ
 """
 
-with open(OUTPUT_DIR / "monte_carlo_women_impact_summary.txt", "w") as f:
-    f.write(summary_text)
 
-print(summary_text)
+def main() -> None:
+    print("=== Phase 5: Monte Carlo with Women's Reservation ===\n")
 
-print(f"\n✅ Saved: monte_carlo_women_impact_scenarios.csv")
-print(f"✅ Saved: monte_carlo_summary.csv")
-print(f"✅ Saved: monte_carlo_women_impact_summary.txt")
+    baseline_mc = BASELINE_MC
+    quota = QUOTA
 
-print(f"\n=== Phase 5 Complete ===")
+
+    # === BASELINE MONTE CARLO RESULTS (from Excel) ===
+    print("--- Baseline: Original Monte Carlo (20,000 simulations, no women's reservation) ---\n")
+
+
+    nda_majority_count = int(0.5158 * 20000)
+    india_majority_count = int(0.10505 * 20000)
+    hung_parliament_count = int(0.37915 * 20000)
+
+    print(f"NDA Outright Majority: {baseline_mc['NDA_Majority_Prob']:.2%} ({nda_majority_count:,} / 20,000)")
+    print(f"INDIA Outright Majority: {baseline_mc['INDIA_Majority_Prob']:.2%} ({india_majority_count:,} / 20,000)")
+    print(f"Hung Parliament: {baseline_mc['Hung_Parliament_Prob']:.2%} ({hung_parliament_count:,} / 20,000)")
+    print("Majority Quota (LS): 272 / 543 seats")
+
+    # === SCENARIO DEFINITIONS (from Excel) ===
+    print("\n--- Scenario Definitions (6 Scenarios) ---\n")
+
+    # Compute winning status for each scenario (before women)
+    for scenario_name, scenario in scenarios.items():
+        nda = scenario['NDA']
+        india = scenario['INDIA']
+
+        if nda >= quota:
+            outcome = "NDA Majority"
+        elif india >= quota:
+            outcome = "INDIA Majority"
+        else:
+            outcome = "Hung Parliament"
+
+        print(f"{scenario_name:20} | {scenario['label']:30} | NDA {nda:3} | INDIA {india:3} | → {outcome}")
+
+    # === WOMEN'S RESERVATION IMPACT ===
+    print("\n--- Women's Reservation Impact (Equal-Carving Model) ---\n")
+
+
+
+    print(f"Women's reserved seats: {women_reserved_ls}")
+    print(f"Estimated women elected: {women_elected_est}")
+    print("Carving assumption: Equal reduction across NDA/INDIA/others")
+
+    # Carving: each bloc loses ~10 seats (188/3 ≈ 62, but women only 31, so smaller reduction)
+    # Simplified: women carved equally from all blocs
+    carving_per_bloc = women_elected_est / 3
+    print(f"Average seats lost per bloc: {carving_per_bloc:.1f}")
+
+    # === POST-RESERVATION SCENARIOS ===
+    print("\n--- Post-Reservation Scenarios (Women's Block Added) ---\n")
+
+    scenario_results = []
+    for scenario_name, scenario in scenarios.items():
+        r = classify_scenario(scenario['NDA'], scenario['INDIA'], women_elected_est, quota)
+        nda_pre, india_pre = r['NDA_Pre'], r['INDIA_Pre']
+        other_pre = 543 - nda_pre - india_pre
+        nda_post, india_post, other_post, women_post = r['NDA_Post'], r['INDIA_Post'], r['Other_Post'], r['Women']
+        outcome_pre, outcome_post = r['Outcome_Pre'], r['Outcome_Post']
+        nda_needs_women, india_needs_women = r['NDA_Needs_Women'], r['INDIA_Needs_Women']
+
+        row = {k: v for k, v in r.items() if k != 'Other_Post'}
+        scenario_results.append({'Scenario': scenario_name, 'Label': scenario['label'], **row})
+
+        print(f"\n{scenario_name}:")
+        print(f"  Before: NDA {nda_pre:3} | INDIA {india_pre:3} | Other {other_pre:3} → {outcome_pre}")
+        print(f"  After:  NDA {nda_post:3} | INDIA {india_post:3} | Women {women_post:2} | Other {other_post:3} → {outcome_post}")
+        if nda_needs_women or india_needs_women:
+            kingmaker = "NDA" if nda_needs_women else "INDIA"
+            print(f"  ⭐ CHANGE: {kingmaker} becomes dependent on women's support!")
+
+    # === MONTE CARLO POST-RESERVATION ===
+    print("\n--- Monte Carlo Post-Reservation Analysis ---\n")
+
+    # For 20,000 simulations, apply carving to each
+    # Assumption: carving reduces NDA/INDIA equally across all draws
+
+    print("Scenario Analysis (from 6 fixed scenarios):")
+    print("-" * 100)
+    print(f"{'Scenario':<20} | {'Pre-Res Outcome':<20} | {'Post-Res Outcome':<30} | {'Outcome Changed?':<15}")
+    print("-" * 100)
+
+    scenarios_changed = 0
+    for result in scenario_results:
+        changed_str = "✓ YES" if result['Outcome_Change'] else "No"
+        print(f"{result['Scenario']:<20} | {result['Outcome_Pre']:<20} | {result['Outcome_Post']:<30} | {changed_str:<15}")
+        if result['Outcome_Change']:
+            scenarios_changed += 1
+
+    print(f"\nScenarios with outcome changes: {scenarios_changed} / 6")
+
+
+    # === MONTE CARLO PROBABILITY SHIFTS ===
+    print("\n--- Monte Carlo Probability Shifts (20,000 Simulations) ---\n")
+
+    print("Baseline (without women's reservation):")
+    print(f"  NDA Majority: {baseline_mc['NDA_Majority_Prob']:.2%}")
+    print(f"  INDIA Majority: {baseline_mc['INDIA_Majority_Prob']:.2%}")
+    print(f"  Hung Parliament: {baseline_mc['Hung_Parliament_Prob']:.2%}")
+
+    # Post-reservation shifts (approximate, conservative)
+    # Assumption: carving 31 seats reduces both NDA and INDIA's majority probability
+    # But creates kingmaker scenario in ~10-15% of cases
+
+    nda_loses_majority_pct = NDA_LOSES_MAJORITY_PCT
+    kingmaker_creation_pct = KINGMAKER_CREATION_PCT
+
+    nda_majority_post = baseline_mc['NDA_Majority_Prob'] * (1 - nda_loses_majority_pct)
+    india_majority_post = baseline_mc['INDIA_Majority_Prob'] * (1 - INDIA_LOSES_MAJORITY_PCT)
+    hung_parliament_post = baseline_mc['Hung_Parliament_Prob'] + kingmaker_creation_pct + (nda_loses_majority_pct * baseline_mc['NDA_Majority_Prob'])
+
+    # Women kingmakers scenario
+    women_kingmakers_pct = kingmaker_creation_pct
+
+    print("\nPost-Reservation (Equal-Carving Model):")
+    print(f"  NDA Outright Majority: {nda_majority_post:.2%} (change: {nda_majority_post - baseline_mc['NDA_Majority_Prob']:+.2%})")
+    print(f"  INDIA Outright Majority: {india_majority_post:.2%} (change: {india_majority_post - baseline_mc['INDIA_Majority_Prob']:+.2%})")
+    print(f"  Women Kingmakers (coalition-dependent): {women_kingmakers_pct:.2%}")
+    print(f"  Pure Hung Parliament (no bloc capable): {hung_parliament_post - women_kingmakers_pct:.2%}")
+    print(f"  Total Hung/Uncertain: {hung_parliament_post:.2%} (change: {hung_parliament_post - baseline_mc['Hung_Parliament_Prob']:+.2%})")
+
+    # === STRATEGIC IMPLICATIONS ===
+    print("\n--- Strategic Implications for Women's Placement ---\n")
+
+    print("Current Monte Carlo conclusion (no women):")
+    print("  • NDA is majority-likely (51.58% chance)")
+    print("  • INDIA faces structural majority problem (10.5% chance)")
+    print("  • ~38% of scenarios result in hung parliament")
+
+    print("\nPost-Reservation implications:")
+    print("  • NDA's majority likelihood decreases slightly (51.58% → ~49%)")
+    print("  • Women gain kingmaker power in ~8% of scenarios")
+    print("  • INDIA's chances improve modestly if women align (still faces 48.5% of NDA majority)")
+    print("  • Strategic placement in swing scenarios (S2-S5) amplifies women's leverage")
+
+    # === SAVE OUTPUTS ===
+    print("\n--- Saving Outputs ---")
+
+    results_df = pd.DataFrame(scenario_results)
+    results_df.to_csv(DATA_PROCESSED / "monte_carlo_women_impact_scenarios.csv", index=False)
+
+    # Summary statistics
+    mc_summary = {
+        'Baseline_NDA_Majority_Prob': baseline_mc['NDA_Majority_Prob'],
+        'Baseline_INDIA_Majority_Prob': baseline_mc['INDIA_Majority_Prob'],
+        'Baseline_Hung_Prob': baseline_mc['Hung_Parliament_Prob'],
+        'Post_Women_NDA_Majority_Prob': nda_majority_post,
+        'Post_Women_INDIA_Majority_Prob': india_majority_post,
+        'Post_Women_Hung_Prob': hung_parliament_post,
+        'Post_Women_Kingmakers_Prob': women_kingmakers_pct,
+        'Women_Elected_Estimate': women_elected_est,
+        'Women_Reserved_Seats': women_reserved_ls,
+        'Scenarios_Changed': scenarios_changed,
+    }
+
+    pd.DataFrame([mc_summary]).to_csv(DATA_PROCESSED / "monte_carlo_summary.csv", index=False)
+    summary_text = render_summary(nda_majority_count, india_majority_count, hung_parliament_count,
+                                 nda_majority_post, india_majority_post, hung_parliament_post,
+                                 women_kingmakers_pct, scenarios_changed)
+
+    with open(OUTPUT_DIR / "monte_carlo_women_impact_summary.txt", "w") as f:
+        f.write(summary_text)
+
+    print(summary_text)
+
+    print("\n✅ Saved: monte_carlo_women_impact_scenarios.csv")
+    print("✅ Saved: monte_carlo_summary.csv")
+    print("✅ Saved: monte_carlo_women_impact_summary.txt")
+
+    print("\n=== Phase 5 Complete ===")
+
+
+if __name__ == "__main__":
+    main()
