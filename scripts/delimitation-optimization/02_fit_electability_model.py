@@ -131,8 +131,8 @@ for state in sorted(df['State_Name'].unique()):
             'Total_Candidates': len(state_data),
             'Women_Candidates': (state_data['Female'] == 1).sum(),
         })
-    except:
-        pass
+    except Exception as exc:  # a per-state fit can fail (e.g. single-class); skip that state
+        print(f"  skipping {state}: {exc}", file=sys.stderr)
 
 penalties_df = pd.DataFrame(state_penalties).sort_values('Empirical_Gap_Pct')
 
