@@ -153,60 +153,49 @@ LIMITATIONS OF THIS ANALYSIS:
 """
 
 
-def main() -> None:
-    print("=== Phase 5: Monte Carlo with Women's Reservation ===\n")
+def baseline_counts() -> tuple[int, int, int]:
+    """Simulation counts (NDA majority, INDIA majority, hung) implied by the 20,000-draw baseline."""
+    return int(0.5158 * 20000), int(0.10505 * 20000), int(0.37915 * 20000)
 
+
+def print_baseline(counts) -> None:
     baseline_mc = BASELINE_MC
-    quota = QUOTA
-
-
-    # === BASELINE MONTE CARLO RESULTS (from Excel) ===
+    nda_majority_count, india_majority_count, hung_parliament_count = counts
     print("--- Baseline: Original Monte Carlo (20,000 simulations, no women's reservation) ---\n")
-
-
-    nda_majority_count = int(0.5158 * 20000)
-    india_majority_count = int(0.10505 * 20000)
-    hung_parliament_count = int(0.37915 * 20000)
-
     print(f"NDA Outright Majority: {baseline_mc['NDA_Majority_Prob']:.2%} ({nda_majority_count:,} / 20,000)")
     print(f"INDIA Outright Majority: {baseline_mc['INDIA_Majority_Prob']:.2%} ({india_majority_count:,} / 20,000)")
     print(f"Hung Parliament: {baseline_mc['Hung_Parliament_Prob']:.2%} ({hung_parliament_count:,} / 20,000)")
     print("Majority Quota (LS): 272 / 543 seats")
 
-    # === SCENARIO DEFINITIONS (from Excel) ===
-    print("\n--- Scenario Definitions (6 Scenarios) ---\n")
 
-    # Compute winning status for each scenario (before women)
+def print_scenario_definitions(quota: int = QUOTA) -> None:
+    """Pre-reservation winner of each fixed scenario."""
+    print("\n--- Scenario Definitions (6 Scenarios) ---\n")
     for scenario_name, scenario in scenarios.items():
         nda = scenario['NDA']
         india = scenario['INDIA']
-
         if nda >= quota:
             outcome = "NDA Majority"
         elif india >= quota:
             outcome = "INDIA Majority"
         else:
             outcome = "Hung Parliament"
-
         print(f"{scenario_name:20} | {scenario['label']:30} | NDA {nda:3} | INDIA {india:3} | → {outcome}")
 
-    # === WOMEN'S RESERVATION IMPACT ===
+
+def print_carving_assumptions() -> None:
     print("\n--- Women's Reservation Impact (Equal-Carving Model) ---\n")
-
-
-
     print(f"Women's reserved seats: {women_reserved_ls}")
     print(f"Estimated women elected: {women_elected_est}")
     print("Carving assumption: Equal reduction across NDA/INDIA/others")
-
-    # Carving: each bloc loses ~10 seats (188/3 ≈ 62, but women only 31, so smaller reduction)
     # Simplified: women carved equally from all blocs
     carving_per_bloc = women_elected_est / 3
     print(f"Average seats lost per bloc: {carving_per_bloc:.1f}")
 
-    # === POST-RESERVATION SCENARIOS ===
-    print("\n--- Post-Reservation Scenarios (Women's Block Added) ---\n")
 
+def run_post_reservation_scenarios(quota: int = QUOTA) -> list[dict]:
+    """Classify each fixed scenario after the women's bloc is carved out; prints per-scenario detail."""
+    print("\n--- Post-Reservation Scenarios (Women's Block Added) ---\n")
     scenario_results = []
     for scenario_name, scenario in scenarios.items():
         r = classify_scenario(scenario['NDA'], scenario['INDIA'], women_elected_est, quota)
@@ -225,13 +214,12 @@ def main() -> None:
         if nda_needs_women or india_needs_women:
             kingmaker = "NDA" if nda_needs_women else "INDIA"
             print(f"  ⭐ CHANGE: {kingmaker} becomes dependent on women's support!")
+    return scenario_results
 
-    # === MONTE CARLO POST-RESERVATION ===
+
+def print_scenario_table(scenario_results) -> int:
+    """Print the pre/post outcome table and return how many scenarios changed outcome."""
     print("\n--- Monte Carlo Post-Reservation Analysis ---\n")
-
-    # For 20,000 simulations, apply carving to each
-    # Assumption: carving reduces NDA/INDIA equally across all draws
-
     print("Scenario Analysis (from 6 fixed scenarios):")
     print("-" * 100)
     print(f"{'Scenario':<20} | {'Pre-Res Outcome':<20} | {'Post-Res Outcome':<30} | {'Outcome Changed?':<15}")
@@ -245,29 +233,27 @@ def main() -> None:
             scenarios_changed += 1
 
     print(f"\nScenarios with outcome changes: {scenarios_changed} / 6")
+    return scenarios_changed
 
 
-    # === MONTE CARLO PROBABILITY SHIFTS ===
+def estimate_post_reservation_probabilities() -> tuple[float, float, float, float]:
+    """Hand-set probability shifts: (NDA majority, INDIA majority, hung, women kingmakers)."""
+    baseline_mc = BASELINE_MC
+    nda_majority_post = baseline_mc['NDA_Majority_Prob'] * (1 - NDA_LOSES_MAJORITY_PCT)
+    india_majority_post = baseline_mc['INDIA_Majority_Prob'] * (1 - INDIA_LOSES_MAJORITY_PCT)
+    hung_parliament_post = (baseline_mc['Hung_Parliament_Prob'] + KINGMAKER_CREATION_PCT
+                            + (NDA_LOSES_MAJORITY_PCT * baseline_mc['NDA_Majority_Prob']))
+    return nda_majority_post, india_majority_post, hung_parliament_post, KINGMAKER_CREATION_PCT
+
+
+def print_probability_shifts(post) -> None:
+    baseline_mc = BASELINE_MC
+    nda_majority_post, india_majority_post, hung_parliament_post, women_kingmakers_pct = post
     print("\n--- Monte Carlo Probability Shifts (20,000 Simulations) ---\n")
-
     print("Baseline (without women's reservation):")
     print(f"  NDA Majority: {baseline_mc['NDA_Majority_Prob']:.2%}")
     print(f"  INDIA Majority: {baseline_mc['INDIA_Majority_Prob']:.2%}")
     print(f"  Hung Parliament: {baseline_mc['Hung_Parliament_Prob']:.2%}")
-
-    # Post-reservation shifts (approximate, conservative)
-    # Assumption: carving 31 seats reduces both NDA and INDIA's majority probability
-    # But creates kingmaker scenario in ~10-15% of cases
-
-    nda_loses_majority_pct = NDA_LOSES_MAJORITY_PCT
-    kingmaker_creation_pct = KINGMAKER_CREATION_PCT
-
-    nda_majority_post = baseline_mc['NDA_Majority_Prob'] * (1 - nda_loses_majority_pct)
-    india_majority_post = baseline_mc['INDIA_Majority_Prob'] * (1 - INDIA_LOSES_MAJORITY_PCT)
-    hung_parliament_post = baseline_mc['Hung_Parliament_Prob'] + kingmaker_creation_pct + (nda_loses_majority_pct * baseline_mc['NDA_Majority_Prob'])
-
-    # Women kingmakers scenario
-    women_kingmakers_pct = kingmaker_creation_pct
 
     print("\nPost-Reservation (Equal-Carving Model):")
     print(f"  NDA Outright Majority: {nda_majority_post:.2%} (change: {nda_majority_post - baseline_mc['NDA_Majority_Prob']:+.2%})")
@@ -276,9 +262,9 @@ def main() -> None:
     print(f"  Pure Hung Parliament (no bloc capable): {hung_parliament_post - women_kingmakers_pct:.2%}")
     print(f"  Total Hung/Uncertain: {hung_parliament_post:.2%} (change: {hung_parliament_post - baseline_mc['Hung_Parliament_Prob']:+.2%})")
 
-    # === STRATEGIC IMPLICATIONS ===
-    print("\n--- Strategic Implications for Women's Placement ---\n")
 
+def print_strategic_implications() -> None:
+    print("\n--- Strategic Implications for Women's Placement ---\n")
     print("Current Monte Carlo conclusion (no women):")
     print("  • NDA is majority-likely (51.58% chance)")
     print("  • INDIA faces structural majority problem (10.5% chance)")
@@ -290,14 +276,12 @@ def main() -> None:
     print("  • INDIA's chances improve modestly if women align (still faces 48.5% of NDA majority)")
     print("  • Strategic placement in swing scenarios (S2-S5) amplifies women's leverage")
 
-    # === SAVE OUTPUTS ===
-    print("\n--- Saving Outputs ---")
 
-    results_df = pd.DataFrame(scenario_results)
-    results_df.to_csv(DATA_PROCESSED / "monte_carlo_women_impact_scenarios.csv", index=False)
-
-    # Summary statistics
-    mc_summary = {
+def build_summary_row(post, scenarios_changed: int) -> dict:
+    """One-row summary written to monte_carlo_summary.csv."""
+    baseline_mc = BASELINE_MC
+    nda_majority_post, india_majority_post, hung_parliament_post, women_kingmakers_pct = post
+    return {
         'Baseline_NDA_Majority_Prob': baseline_mc['NDA_Majority_Prob'],
         'Baseline_INDIA_Majority_Prob': baseline_mc['INDIA_Majority_Prob'],
         'Baseline_Hung_Prob': baseline_mc['Hung_Parliament_Prob'],
@@ -310,14 +294,31 @@ def main() -> None:
         'Scenarios_Changed': scenarios_changed,
     }
 
-    pd.DataFrame([mc_summary]).to_csv(DATA_PROCESSED / "monte_carlo_summary.csv", index=False)
-    summary_text = render_summary(nda_majority_count, india_majority_count, hung_parliament_count,
-                                 nda_majority_post, india_majority_post, hung_parliament_post,
-                                 women_kingmakers_pct, scenarios_changed)
 
+def write_outputs(scenario_results, post, counts, scenarios_changed: int) -> str:
+    """Write the two CSVs and the summary text; return the summary text."""
+    print("\n--- Saving Outputs ---")
+    pd.DataFrame(scenario_results).to_csv(DATA_PROCESSED / "monte_carlo_women_impact_scenarios.csv", index=False)
+    pd.DataFrame([build_summary_row(post, scenarios_changed)]).to_csv(
+        DATA_PROCESSED / "monte_carlo_summary.csv", index=False)
+    summary_text = render_summary(*counts, *post[:3], post[3], scenarios_changed)
     with open(OUTPUT_DIR / "monte_carlo_women_impact_summary.txt", "w") as f:
         f.write(summary_text)
+    return summary_text
 
+
+def main() -> None:
+    print("=== Phase 5: Monte Carlo with Women's Reservation ===\n")
+    counts = baseline_counts()
+    print_baseline(counts)
+    print_scenario_definitions()
+    print_carving_assumptions()
+    scenario_results = run_post_reservation_scenarios()
+    scenarios_changed = print_scenario_table(scenario_results)
+    post = estimate_post_reservation_probabilities()
+    print_probability_shifts(post)
+    print_strategic_implications()
+    summary_text = write_outputs(scenario_results, post, counts, scenarios_changed)
     print(summary_text)
 
     print("\n✅ Saved: monte_carlo_women_impact_scenarios.csv")
