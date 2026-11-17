@@ -1,100 +1,128 @@
 # India Election Analysis
 
-<!-- how-to-use-with-ai -->
-> **New here?** See [How to use this repo with AI (Claude, Gemini, ChatGPT)](HOW_TO_USE_WITH_AI.md) — clone it, paste it into an AI tool, and ask in plain English.
+Python analyses of Indian parliamentary elections: voters per Lok Sabha constituency and delimitation context,
+game-theoretic coalition arithmetic (Banzhaf power, minimal winning coalitions, Monte Carlo seat draws),
+constituency-level vote-share models on TCPD data, and a women's-reservation placement and coalition-sensitivity
+pipeline. Outputs are Excel workbooks, CSVs under `data/processed/` and short text summaries.
 
+> Status: research-only. None of this is a forecast; the coalition models are structural exercises that show how
+> seat arithmetic maps to bargaining power. Several modelling assumptions are contradicted by the repo's own data and
+> are documented, with tests, in [`ASSUMPTIONS.md`](ASSUMPTIONS.md). Educational use only.
+> New to the repo? See [How to use this repo with an AI assistant](HOW_TO_USE_WITH_AI.md).
+> [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/herrrickshaw/india-election-analysis/blob/master/notebooks/colab_test.ipynb)
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/herrrickshaw/india-election-analysis/blob/master/notebooks/colab_test.ipynb)
+## What it does
+- Electors per Lok Sabha constituency by state (2024), the 2014 to 2024 national trend, and a population-per-seat
+  representation index using 2011 Census data (`election-data-analysis/`).
+- Minimal winning coalitions, Banzhaf power index, six scripted hung-parliament scenarios and a 20,000-draw Monte
+  Carlo of Lok Sabha seat splits (`coalition-game-theory/`).
+- Seat-total bias sweep (534 to 1,000 seats) and an entrenchment symmetry test (`coalition-game-theory/seat-bias-analysis/`).
+- Constituency vote-share models on TCPD Lok Dhaba data, with a chronological train/validation/test split: a
+  win/lose classifier, a hierarchical Bayesian (MrP-style) model and a Dirichlet-swing model
+  (`vote-share-modeling/`). None of the three beats a naive "assume no change" baseline on held-out future elections.
+- Women's-candidacy statistics, an electability model, reserved-seat placement scenarios, state-level Banzhaf
+  sensitivity and a Monte Carlo with a women's bloc (`scripts/delimitation-optimization/`).
+- A per-assumption audit with one pytest per row; assumptions the data contradicts are strict `xfail` tests (`tests/`).
 
-Two related analyses of India's electoral system, built with Python (pandas/openpyxl) and delivered as Excel workbooks.
-
-## Contents
-
-### 1. [`election-data-analysis/`](./election-data-analysis)
-State-wise analysis of voters per Lok Sabha constituency, population-vs-representation
-imbalance, and the 2026 Delimitation Bill context. Covers:
-- Average electors per constituency by state (2024 Lok Sabha)
-- National trend 2014→2024 (electors, turnout, seats)
-- Population-per-seat "representation index" by state, using 2011 Census data
-- Context on the (defeated) Delimitation Bill, 2026 and its state-wise seat projections
-
-### 2. [`coalition-game-theory/`](./coalition-game-theory)
-Game-theoretic simulation of Lok Sabha majority formation using existing political
-parties only (no hypothetical new parties). Covers:
-- Minimal Winning Coalitions (MWC) analysis
-- Banzhaf Power Index (pivotality / bargaining power)
-- Six hand-picked scenarios (current standing, 2024-as-declared, various hung-parliament cases)
-- Monte Carlo simulation: 20,000 randomized, historically-bounded seat permutations,
-  answering "what share of plausible outcomes produce a hung parliament?"
-
-Includes a [`seat-bias-analysis/`](./coalition-game-theory/seat-bias-analysis) subfolder
-covering:
-- **Seat-Total Bias Analysis (534–1,000 seats)**: sweeps the winner's bonus (Gallagher
-  disproportionality) and P(incumbent majority) at every seat-total from 534 to 1,000.
-  Includes a prominent coin-flip disclaimer and a post-hoc assumption audit identifying
-  two material biases (seat-share-as-vote-share proxy, concentration parameter too tight).
-- **Entrenchment Symmetry Test**: five counterfactual scenarios (NDA real lead, INDIA
-  mirror, toss-up, small leads each direction) confirm the entrenchment effect is
-  symmetric — it depends on distance from 50%, not on which bloc happens to lead.
-
-### 3. [`vote-share-modeling/`](./vote-share-modeling)
-Predictive modeling of constituency-level vote share on real TCPD Lok Dhaba data
-(1999-2019 Lok Sabha, 1961-2023 State Assembly). Three approaches, evaluated with a
-genuine chronological train/validation/test split:
-- Discrete win/lose classifier (failed — near-random accuracy across a 2014 regime change)
-- Hierarchical Bayesian model (MrP-inspired partial pooling across states)
-- Dirichlet-Swing Matrix Model (Mitra 2026), including real Dirichlet-MLE degeneracy
-  bugs found and fixed during implementation
-- Headline finding: none of the three beats a naive "assume no change" baseline on
-  real held-out future elections — a genuine, reported negative result
-
-## Important framing
-
-**Neither analysis is a forecast.** The coalition model in particular is a structural/
-methodological exercise — it shows how seat arithmetic translates into bargaining power
-under cooperative game theory, not a prediction of any real election's outcome. Data
-sources, methodology notes, and explicit caveats are documented in each project's own
-README and inside the "README" tab of each Excel workbook.
-
-## Requirements to re-run
-
+## Quick start
 ```bash
-pip install pandas openpyxl numpy
+git clone https://github.com/herrrickshaw/india-election-analysis.git
+cd india-election-analysis
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+pytest -q                      # 55 passed, 18 xfailed (the xfails are the documented contradicted assumptions)
 ```
+Re-run a stage from the repo root, for example the women's-reservation Monte Carlo (reads
+`data/processed/`, rewrites its CSV and a summary under `coalition-game-theory/output/`):
+```bash
+python scripts/delimitation-optimization/06_monte_carlo_with_women.py
+```
+Note that re-running a stage overwrites the tracked CSV/TXT outputs it produces.
 
-Each project's `scripts/` folder is numbered in the order the scripts were run to build
-the final workbook. Intermediate pickle/cache files are not committed (regenerated by
-running the scripts in sequence) — see each subfolder's README for the exact run order.
+## How it works
+Each project's `scripts/` folder is numbered in run order; later scripts build workbook sheets from the earlier
+scripts' CSVs. Pickle caches are not committed and are regenerated by running the scripts in sequence.
 
-## Data currency
+| Stage | Module | Output |
+|---|---|---|
+| Parse TCPD assembly-election rows for women | `scripts/delimitation-optimization/01_parse_women_candidacy.py` | `data/processed/women_candidacy_*.csv` |
+| Women candidacy workbook | `02_build_women_candidacy_workbook.py` | `Women_Candidacy_Analysis.xlsx` |
+| Logistic electability model | `02_fit_electability_model.py`, `02b_build_electability_workbook.py` | `state_gender_penalties.csv`, `constituency_win_potential.csv`, `Women_Electability_Model.xlsx` |
+| Reserved-seat placement scenarios | `03_placement_optimizer.py` (`build_state_strategies`, `build_scenarios`) | `reserved_seat_placement_representation_first.csv`, `placement_scenario_*.csv` |
+| State-level Banzhaf sensitivity | `04_coalition_sensitivity.py` (`estimate_state_shifts`, `estimate_displacement`, `assess_hung_risk`) | `coalition_sensitivity_state_level.csv`, `incumbent_displacement_analysis.csv`, `hung_parliament_risk_assessment.csv` |
+| Lok Sabha analysis and placement | `05_lok_sabha_analysis.py`, `05_lok_sabha_placement.py` | `lok_sabha_*.csv` |
+| Monte Carlo with a women's bloc | `06_monte_carlo_with_women.py` (`classify_scenario`) | `monte_carlo_women_impact_scenarios.csv`, `monte_carlo_summary.csv` |
 
-Built using publicly available data as of June 2026 (ECI statistical reports, Census of
-India 2011, Wikipedia-compiled Lok Sabha membership records, PRS Legislative Research).
-See in-workbook source notes for full citations.
+Design choices: stages 03, 04 and 06 are import-safe (pure functions plus `main()`), which is what lets
+`tests/test_delimitation_pipeline.py` exercise them on synthetic rows. Other scripts are still top-level pipelines;
+`tests/_scriptload.py` extracts their functions via `ast` so they can be tested without running them.
 
-## Data citation
+## Repository layout
+| Path | Purpose |
+|---|---|
+| `election-data-analysis/` | Voters per constituency, trend, delimitation context; scripts 01-06, one workbook |
+| `coalition-game-theory/` | Banzhaf / MWC engine, Monte Carlo, workbook builders; `seat-bias-analysis/` sub-project; women's-participation data |
+| `vote-share-modeling/` | TCPD roll-up, features, classifier, MrP and Dirichlet-swing models, workbook builders |
+| `scripts/delimitation-optimization/` | Women's reservation placement and sensitivity pipeline (stages above) |
+| `data/processed/` | Tracked derived CSVs written by the delimitation pipeline |
+| `tests/` | Assumption tests (`test_assumptions_*.py`), engine tests, pipeline characterisation tests |
+| `ASSUMPTIONS.md` | Verdict table: each assumption, repo-data evidence, impact on headline numbers |
+| `from-working-files/` | Earlier working copy of the projects, kept as a snapshot; not used by tests |
+| `notebooks/colab_test.ipynb` | Colab smoke notebook |
 
-Constituency- and candidate-level election data (the derived files under
-`vote-share-modeling/data/` and `data/processed/`) come from:
+## Data sources
+| Source | What is taken | Access route | Licence / caveat |
+|---|---|---|---|
+| TCPD Indian Elections Data v2.0, Trivedi Centre for Political Data, Ashoka University (2021) | Constituency and candidate results behind `vote-share-modeling/data/` and `data/processed/` | Downloaded files (Lok Dhaba) | Check TCPD's terms before redistributing; TCPD does not endorse this analysis and errors are this repository's own |
+| Election Commission of India statistical reports | Electors, turnout, seats | Public reports, compiled by hand | In-workbook source notes carry full citations |
+| Census of India 2011 | Population per state | Public tables | Pre-dates Census 2027 |
+| PRS Legislative Research, Wikipedia-compiled Lok Sabha membership | Party seat counts | Public pages | Wikipedia-derived figures should be re-checked against ECI |
+| Lok Sabha Q&A annex (sansad.in) | Panchayati Raj reservation precedent | https://sansad.in/getFile/loksabhaquestions/annex/185/AU2550_aiD6KX.pdf?source=pqals | Quoted below under Context |
 
-> TCPD Indian Elections Data v2.0, Trivedi Centre for Political Data, Ashoka University (2021).
+Data currency: built with publicly available data as of June 2026. Raw TCPD archives (`data/raw/`, e.g.
+`TCPD_AE_All_States_2026-6-29.csv.gz`) are not committed, so `01_parse_women_candidacy.py`,
+`02_fit_electability_model.py` and `05_lok_sabha_analysis.py` cannot be re-run from a clean clone.
 
-TCPD does not endorse this analysis, and any errors in it are this repository's own.
+## Configuration
+No environment variables or secrets. All paths are relative to the repo root via `pathlib`. Tunable assumptions are
+named constants at the top of each script, e.g. `BLOC_SEAT_SHARE = 0.35` and `DISPLACEMENT_RATE = 0.80` in
+`04_coalition_sensitivity.py`, and `NDA_LOSES_MAJORITY_PCT`, `KINGMAKER_CREATION_PCT` in `06_monte_carlo_with_women.py`.
 
-## Assumption audit
+## Testing
+```bash
+pytest -q          # 55 passed, 18 xfailed
+ruff check scripts/delimitation-optimization/03_placement_optimizer.py \
+           scripts/delimitation-optimization/04_coalition_sensitivity.py \
+           scripts/delimitation-optimization/06_monte_carlo_with_women.py tests
+```
+CI (`.github/workflows/ci.yml`) runs the same two commands. Lint scope is limited to the refactored modules; the
+remaining scripts carry unused imports and placeholder-less f-strings.
 
-[`ASSUMPTIONS.md`](ASSUMPTIONS.md) lists each modelling assumption, the evidence for and
-against it from the committed historical data, and how it affects the headline numbers.
-Each row is covered by a test in `tests/test_assumptions_*.py`. Assumptions the data
-contradicts are written as strict `xfail` tests, and each one records the measured gap.
-Run them with `pytest tests/`.
+## Context: women's reservation and house size
+Facts used by the delimitation pipeline, with the source given where one exists:
+- The Lok Sabha chamber in the new Parliament building has a standard seating capacity of 888, expandable to 1,272
+  for joint sessions.
+- Article 243D requires at least 33% reservation for women in Panchayati Raj Institutions; the cited Lok Sabha
+  answer (link above) states that over 20 states have extended this to 50%. The women's reservation bill for
+  Parliament provides 33%.
+- Census 2027 field operations were under way when this was written; provisional results were anticipated in late
+  2027 and final reports in late 2028. Seat counts that depend on Census results therefore cannot yet be evaluated.
 
-# Boundary conditions
-The Lok Sabha chamber in the new Parliament building (Sansad Bhavan) in New Delhi has a standard seating capacity of 888 seats. Additionally, the hall's design can be expanded to accommodate up to 1,272 seats to host joint sessions of both houses of Parliament. 
+## Limitations and known issues
+- Not forecasts. The vote-share models do not beat a no-change baseline on held-out elections.
+- The seat-total bias analysis carries two documented biases (seat-share used as a vote-share proxy; concentration
+  parameter too tight) and a coin-flip disclaimer.
+- `04_coalition_sensitivity.py` assumes NDA = INDIA = 35% of every state's seats, so "High" hung-parliament risk is
+  true in all 34 states by construction (strict `xfail` in `tests/test_assumptions_women.py`).
+- `06_monte_carlo_with_women.py` uses 188 reserved seats (34.6%) and 31 women elected; both are contradicted by
+  the repo's own data (see `ASSUMPTIONS.md`). Bloc definitions differ between modules.
+- Re-running `03` and `05_lok_sabha_placement.py` today produces CSVs that differ from the committed ones
+  (floating-point / environment drift); the committed copies were left untouched.
+- `from-working-files/` duplicates earlier versions of several scripts.
+- No licence file: all rights reserved until the owner adds one.
 
-# Precedent
-The Indian Constitution mandates a minimum of 33% reservation for women in all Panchayati Raj Institutions (PRIs) through Article 243D. However, over 20 Indian states (including Karnataka, Bihar, and Madhya Pradesh) have expanded this quota to 50%, ensuring women hold at least half of all seats and chairperson roles, however in the parliament the women's reservation bill only proposes 33% - https://sansad.in/getFile/loksabhaquestions/annex/185/AU2550_aiD6KX.pdf?source=pqals
+## Related repositories
+None required; the repo is self-contained.
 
-# Optimum Solution proposed
-Increase the total women's reservations to 50%, to ensure gender equality by design at least, number of MP seats can be decided based on Census results. India is currently in the middle of its 16th Census (Census 2027). Because field operations are still underway, there are no published or final results yet. Provisional results are anticipated in late 2027, with final reports expected in late 2028. MP seats are to establish a representative democracy and the purpose of the bill is to ensure more MPs per citizen, which ensures equal representation by aligning the voter population with the number of representatives ("one person, one vote, one value"), hence will incomplete census data how can the bill be evaluated?
-
+## Licence
+No licence file yet; all rights reserved.

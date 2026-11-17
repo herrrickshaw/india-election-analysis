@@ -1,0 +1,17 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # pymc/arviz/lightgbm from requirements.txt are not needed by the tests.
+      - run: pip install pytest ruff pandas numpy scipy openpyxl scikit-learn
+      # Lint scope grows as modules are refactored (see README "Limitations").
+      - run: ruff check scripts/delimitation-optimization/03_placement_optimizer.py scripts/delimitation-optimization/04_coalition_sensitivity.py scripts/delimitation-optimization/06_monte_carlo_with_women.py tests
+      - run: pytest -q
