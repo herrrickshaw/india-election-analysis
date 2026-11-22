@@ -167,7 +167,7 @@ def test_fit_electability_model_outputs(tree, capsys):
     # one row per constituency with >=5 candidates: 12 (A,B) + 1 (TINY); the 4-row ONECLASS
     # constituencies and the 1-row 'lonely' one are dropped
     assert len(pot) == 13 and not ({"lonely", "Oc0"} & set(pot.Constituency))
-    assert pot.Predicted_Gender_Gap.eq(pot.Predicted_Man_Win_Prob - pot.Predicted_Woman_Win_Prob).all()
+    np.testing.assert_allclose(pot.Predicted_Gender_Gap, pot.Predicted_Man_Win_Prob - pot.Predicted_Woman_Win_Prob, atol=1e-12)
     np.testing.assert_allclose(pot.Potential_Score,
                                (1 - pot.Predicted_Gender_Gap) * pot.Predicted_Woman_Win_Prob * 100)
     row = pot[pot.Constituency == "Tc0"].iloc[0]
