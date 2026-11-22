@@ -1,0 +1,19 @@
+[run]
+source =
+    scripts/delimitation-optimization
+    coalition-game-theory/scripts
+    coalition-game-theory/seat-bias-analysis/scripts
+    vote-share-modeling/scripts
+    election-data-analysis/scripts
+omit =
+    tests/*
+    */conftest.py
+    from-working-files/*
+    notebooks/*
+    .github/*
+    */test_*.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
