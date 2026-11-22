@@ -253,7 +253,7 @@ def test_recency_baseline_is_majority_of_2009_2014_scored_on_2019(cwd, monkeypat
 def test_mwc_sheet_cap_is_exactly_twenty(cwd, n, note):
     names = ["S0_Actual_Current", "S1_2024_AsDeclared", "S2_NDA_Falls_Short",
              "S3_Deep_Hung_Parliament", "S4_NDA_Needs_Swing", "S5_INDIA_Largest_No_Majority"]
-    mwc = [{"coalition": [f"P{i}", "Q"], "seats": 272 + i, "margin": i} for i in range(n)]
+    mwc = [{"coalition": [f"P{i}", "Q"], "seats": 272 + n - i, "margin": n - i} for i in range(n)]
     res = {s: {"minimal_winning_coalitions": mwc if s == names[2] else []} for s in names}
     with open("scenario_results.pkl", "wb") as f:
         pickle.dump(res, f)
@@ -262,4 +262,7 @@ def test_mwc_sheet_cap_is_exactly_twenty(cwd, n, note):
     ws = load_workbook("coalition_model.xlsx")["Minimal Winning Coalitions"]
     col = [ws.cell(r, 1).value for r in range(1, ws.max_row + 1)]
     assert sum(isinstance(v, int) for v in col) == 20
+    if n == 20:  # all shown as given (not re-sorted): seats descend 292, 291, ...
+        seats = [ws.cell(r, 3).value for r in range(1, ws.max_row + 1) if isinstance(ws.cell(r, 1).value, int)]
+        assert seats == list(range(292, 272, -1))
     assert [v for v in col if isinstance(v, str) and v.startswith("... plus")] == ([note] if note else [])
