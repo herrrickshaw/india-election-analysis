@@ -4,13 +4,12 @@ constant tables (01, 02); plus the DSMM pipeline body of vote-share-modeling/12.
 The seat-bias scripts hard-code an absolute /home/claude input path and a large simulation grid;
 the tests redirect the path into tmp_path and shrink the grid with text substitutions."""
 import pickle
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from _runscript import ROOT, run_script
+from _runscript import run_script
 
 SB = "coalition-game-theory/seat-bias-analysis/scripts"
 ED = "election-data-analysis/scripts"
