@@ -1,0 +1,21 @@
+[run]
+source =
+    scripts/delimitation-optimization
+    coalition-game-theory/scripts
+    coalition-game-theory/seat-bias-analysis/scripts
+    vote-share-modeling/scripts
+    election-data-analysis/scripts
+# 11_hierarchical_mrp_model.py is MCMC sampling with pymc/arviz (not installed in the pytest CI job).
+omit =
+    tests/*
+    */conftest.py
+    from-working-files/*
+    notebooks/*
+    .github/*
+    vote-share-modeling/scripts/11_hierarchical_mrp_model.py
+    */test_*.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:

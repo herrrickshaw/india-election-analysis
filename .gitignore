@@ -22,3 +22,7 @@ TCPD_*_All_States_*.csv.gz
 .venv/
 .pytest_cache/
 .ruff_cache/
+
+# Coverage output
+.coverage
+coverage.xml
